@@ -1,6 +1,6 @@
 # Mentora — AI-Powered Smart Learning Companion
 
-Mentora is an AI-powered, interactive math tutoring web application built for children aged 7 to 10. It pairs an animated AI tutor — powered by Google's Gemini models — with SVG-based visual rendering, voice interaction, and gamified learning to make foundational mathematics engaging, accessible, and personalized, without requiring installation or specialized hardware.
+Mentora is an AI-powered, interactive math tutoring web application built for children aged 7 to 10. It pairs an animated AI tutor — powered by Google's Gemini models — with SVG-based visual rendering, voice interaction, and gamified learning to make foundational mathematics engaging, accessible, and personalized, with an adaptive learning pathway that adjusts to each child's pace and performance.
 
 <p align="center">
   <img src="public/Logo.jpeg" width="200">
