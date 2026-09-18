@@ -1,11 +1,11 @@
 # Mentora — AI-Powered Smart Learning Companion
 
-Mentora is an AI-powered, interactive math tutoring web application built for children aged 7 to 10. It pairs an animated AI tutor — powered by Google's Gemini  — with SVG-based visual rendering, voice interaction, and gamified learning to make foundational mathematics engaging, accessible, and personalized, without requiring installation or specialized hardware.
+Mentora is an AI-powered, interactive math tutoring web application built for children aged 7 to 10. It pairs an animated AI tutor — powered by Google's Gemini models — with SVG-based visual rendering, voice interaction, and gamified learning to make foundational mathematics engaging, accessible, and personalized, without requiring installation or specialized hardware.
 
 > Senior Project — Department of Computer Science, Forman Christian College (A Chartered University), Lahore, Pakistan.
 
 <p align="center">
-  <img src="public/Logo.jpeg" alt="Mentora Logo" width="200">
+  <img src="public/Logo.jpeg" width="200">
 </p>
 
 ---
@@ -35,9 +35,9 @@ Mentora is an AI-powered, interactive math tutoring web application built for ch
 
 ## Overview
 
-Early mathematics education is essential for long-term academic success, yet many children aged 7–10 lack access to affordable, personalized, and engaging tutoring. Traditional classrooms and most digital platforms provide limited individual attention, feedback, visualization, and interactivity — making core concepts such as addition, subtraction, multiplication, and division difficult for young learners to grasp.
+Early mathematics education is essential for long-term academic success, yet many children aged 7–10 lack access to affordable, personalized, and engaging tutoring. Traditional classrooms and most digital platforms provide limited individual attention, feedback, visualization, and interactivity — making core concepts such as addition, subtraction, multiplication, and division/fraction difficult for young learners to grasp.
 
-**Mentora** addresses this gap with an animated AI tutor that delivers personalized, step-by-step math lessons in real time. Lessons are rendered through a custom `MathVisual` component using animated SVG graphics and familiar objects (apples, cats, fish, cars, etc.), and children can interact with the tutor via text or voice. A parent dashboard provides visibility into topic mastery, quiz results, accuracy, and daily activity.
+**Mentora** addresses this gap with an animated AI tutor that delivers personalized, step-by-step math lessons in real time. Lessons are rendered through a custom `MathVisual` component using animated SVG graphics and familiar objects (oranges, cats, fishes, cars, etc.), and children can interact with the tutor via text or voice. A parent dashboard provides visibility into topic mastery, quiz results, accuracy, and daily activity.
 
 User testing with children in the target age group showed that learners completed lessons, understood the concepts being taught, and responded positively to the animated visual approach — with AI responses remaining accurate and age-appropriate throughout.
 
@@ -46,7 +46,7 @@ User testing with children in the target age group showed that learners complete
 Existing math education platforms typically lack at least one of the following: real-time personalized feedback, meaningful visual interactivity, or voice-based interaction — and none combine all three within a structured lesson framework built specifically for children aged 7–10.
 
 Mentora solves this by combining:
-- Conversational AI tutoring (Gemini 2.5 Flash)
+- Conversational AI tutoring (Google Gemini, auto-selected model)
 - Animated, SVG-based visual learning
 - Voice-based interaction
 - A structured, progressive lesson framework (CRA pedagogy)
@@ -64,7 +64,7 @@ Mentora solves this by combining:
 ## Key Features
 
 - 🧮 **Four Math Modules** — Addition, Subtraction, Multiplication, and Division, structured across **13 progressive difficulty levels**, following the **Concrete–Representational–Abstract (CRA)** pedagogical framework.
-- 🤖 **AI Tutor (Mentora)** — Powered by Google's Gemini 2.5 Flash, generating dynamic, step-by-step lessons and quiz questions tailored to each child's current level.
+- 🤖 **AI Tutor (Mentora)** — Powered by Google's Gemini API. On startup, the backend queries the Gemini API for the models available to the configured API key and automatically selects the best one from a preferred list (`gemini-3.5-flash` → `gemini-2.5-flash` → `gemini-2.0-flash` → `gemini-1.5-flash` → `gemini-2.5-pro` → `gemini-2.0-flash-lite` → `gemini-1.5-pro`), falling back to any other available Gemini "flash" or Gemini model if none of the preferred ones are accessible. This means the exact model used depends on what the provided `GEMINI_API_KEY` has access to, rather than being hardcoded.
 - 🎨 **Animated Visual Learning** — A custom `MathVisual` React component renders concepts as animated SVG scenes using familiar objects, powered by Framer Motion.
 - 🎙️ **Voice Input & Output** — Voice recognition via the browser's native Web Speech API and voice synthesis via gTTS, so children can speak their answers and hear responses.
 - 💡 **Progressive Hints System** — Scaffolded hints are provided after repeated incorrect attempts, guiding the student without revealing the answer outright.
@@ -78,46 +78,43 @@ Mentora solves this by combining:
 
 | Layer | Technology |
 |---|---|
-| Frontend | React.js, Framer Motion |
-| Backend | FastAPI (Python) |
+| Frontend | React.js, Framer Motion,html/css |
+| Backend | FastAPI (Python), Node.js, Uvicorn, RestAPI |
 | Database | PostgreSQL (via SQLAlchemy ORM) |
-| AI Model | Google Gemini  |
+| AI Model | Google Gemini API (model auto-selected at runtime based on API key access — see [Key Features](#key-features)) |
 | Text-to-Speech | gTTS (Google Text-to-Speech) |
 | Speech-to-Text | Web Speech API (browser-native) |
 | Visualization | Custom `MathVisual` SVG component |
 
-
-
 ## System Flow
 
-| System Flow | <img src="Screenshots/System Flow.png" alt="System Flow" width="400"> |
+<img src="Screenshots/System Flow.png" width="500"> 
 
 ## Screenshots
 
 | Screen Name | Preview |
 |---|---|
-| Student Signup | <img src="Screenshots/Student Signup Screen.png" alt="Student Signup" width="400"> |
-| Parent Signup | <img src="Screenshots/Parent Signup Screen.png" alt="Parent Signup" width="400"> |
-| Student Login | <img src="Screenshots/Student Login Screen.png" alt="Student Login" width="400"> |
-| Parent Login | <img src="Screenshots/Parent Login Screen.png" alt="Parent Login" width="400"> |
-| Mentora Welcome Screen | <img src="Screenshots/Mentora Welcome Screen.png" alt="Mentora Welcome Screen" width="400"> |
-| Interaction Mode | <img src="Screenshots/Interaction mode Screen.png" alt="Interaction Mode" width="400"> |
-| AI Tutor Chat Interface | <img src="Screenshots/AI Tutor Chat Interface Interaction.png" alt="AI Tutor Chat Interface" width="400"> |
-| Addition Visual Learning Example | <img src="Screenshots/Addition Visual Learning Example.png" alt="Addition Visual Learning Example" width="400"> |
-| Addition Visual Learning | <img src="Screenshots/Addition Visual Learning .png" alt="Addition Visual Learning" width="400"> |
-| Subtraction Visual Learning Example | <img src="Screenshots/Subtraction Visual Learning Example.png" alt="Subtraction Visual Learning Example" width="400"> |
-| Math Adventure Topic Selection | <img src="Screenshots/Math Adventure Topic Selection Screen.png" alt="Math Adventure Topic Selection" width="400"> |
-| Addition Level Selection | <img src="Screenshots/Addition Level Selection Screen.png" alt="Addition Level Selection" width="400"> |
-| Subtraction Level Selection | <img src="Screenshots/Subtraction Level Selection Screen.png" alt="Subtraction Level Selection" width="400"> |
-| Multiplication Level Selection | <img src="Screenshots/Multiplication Level Selection Screen.png" alt="Multiplication Level Selection" width="400"> |
-| Division Level Selection | <img src="Screenshots/Division Level Selection Screen.png" alt="Division Level Selection" width="400"> |
-| Multiplication Level 1 Learning Mode | <img src="Screenshots/Multiplication Level 1 Learning mode.png" alt="Multiplication Level 1 Learning Mode" width="400"> |
-| Multiplication Level 1 Adaptive Learning | <img src="Screenshots/Multiplication Level 1 Adaptive Learning.png" alt="Multiplication Level 1 Adaptive Learning" width="400"> |
-| Student Dashboard & Progress Analytics | <img src="Screenshots/Student Dashboard and Progress Analytics.png" alt="Student Dashboard and Progress Analytics" width="400"> |
-| Game Arcade | <img src="Screenshots/Game Arcade Screen.png" alt="Game Arcade" width="400"> |
-| Student Profile | <img src="Screenshots/Student Profile Screen.png" alt="Student Profile" width="400"> |
-| Parent Profile | <img src="Screenshots/Parent Profile Screen.png" alt="Parent Profile" width="400"> |
-
+| Student Signup | <img src="Screenshots/Student Signup Screen.png" alt="Student Signup" width="500"> |
+| Parent Signup | <img src="Screenshots/Parent Signup Screen.png" alt="Parent Signup" width="500"> |
+| Student Login | <img src="Screenshots/Student Login Screen.png" alt="Student Login" width="500"> |
+| Parent Login | <img src="Screenshots/Parent Login Screen.png" alt="Parent Login" width="500"> |
+| Mentora Welcome Screen | <img src="Screenshots/Mentora Welcome Screen.png" alt="Mentora Welcome Screen" width="500"> |
+| Interaction Mode | <img src="Screenshots/Interaction mode Screen.png" alt="Interaction Mode" width="500"> |
+| AI Tutor Chat Interface | <img src="Screenshots/AI Tutor Chat Interface Interaction mode.png" alt="AI Tutor Chat Interface" width="500"> |
+| Addition Visual Learning Example | <img src="Screenshots/Addition Visual Learning Example.png" alt="Addition Visual Learning Example" width="500"> |
+| Addition Visual Learning | <img src="Screenshots/Addition Visual Learning .png" alt="Addition Visual Learning" width="500"> |
+| Subtraction Visual Learning Example | <img src="Screenshots/Subtraction Visual Learning Example.png" alt="Subtraction Visual Learning Example" width="500"> |
+| Math Adventure Topic Selection | <img src="Screenshots/Math Adventure Topic Selection Screen (Learning mode).png" alt="Math Adventure Topic Selection" width="500"> |
+| Addition Level Selection | <img src="Screenshots/Addition Level Selection Screen.png" alt="Addition Level Selection" width="500"> |
+| Subtraction Level Selection | <img src="Screenshots/Subtraction Level Selection Screen.png" alt="Subtraction Level Selection" width="500"> |
+| Multiplication Level Selection | <img src="Screenshots/Multiplication Level Selection Screen.png" alt="Multiplication Level Selection" width="500"> |
+| Division Level Selection | <img src="Screenshots/Division Level Selection Screen.png" alt="Division Level Selection" width="500"> |
+| Multiplication Level 1 Learning Mode | <img src="Screenshots/Multiplication Level 1 Learning mode.png" alt="Multiplication Level 1 Learning Mode" width="500"> |
+| Multiplication Level 1 Adaptive Learning | <img src="Screenshots/Multiplication Level 1 Adaptive Learning.png" alt="Multiplication Level 1 Adaptive Learning" width="500"> |
+| Student Dashboard & Progress Analytics | <img src="Screenshots/Student Dashboard and Progress Analytics.png" alt="Student Dashboard and Progress Analytics" width="500"> |
+| Game Arcade | <img src="Screenshots/Game Arcade Screen.png" alt="Game Arcade" width="500"> |
+| Student Profile | <img src="Screenshots/Student Profile Screen.png" alt="Student Profile" width="500"> |
+| Parent Profile | <img src="Screenshots/Parent Profile Screen.png" alt="Parent Profile" width="500"> |
 
 ## Getting Started
 
@@ -139,13 +136,13 @@ Make sure the following are installed before setup:
 
 ```bash
 git clone <project-repository-link>
-cd mentora
+cd Mentora
 ```
 
 **2. Set up the backend**
 
 ```bash
-cd backend
+cd Backend
 python -m venv venv
 
 # Activate the virtual environment
@@ -172,7 +169,13 @@ npm install
 ```env
 GEMINI_API_KEY=your_gemini_api_key
 DATABASE_URL=postgresql://username:password@localhost:5432/mentora_db
+SENDER_EMAIL=your_gmail_address@gmail.com
+SENDER_PASSWORD=your_gmail_app_password
 ```
+
+> `SENDER_EMAIL` and `SENDER_PASSWORD` are used to send verification and password-reset emails via Gmail's SMTP server (`smtp.gmail.com`). `SENDER_PASSWORD` should be a [Gmail App Password](https://myaccount.google.com/apppasswords), not your regular account password. If these two variables are left unset, the backend will **not** fail — it logs a warning and mocks the email (prints the recipient, subject, and body to the console) instead of actually sending it, which is useful for local development without email credentials.
+
+> The backend does **not** require you to specify a Gemini model name. On startup it automatically queries the Gemini API for the models your `GEMINI_API_KEY` can access and selects the best available one (preferring newer Flash models, e.g. `gemini-3.5-flash` or `gemini-2.5-flash`, with automatic fallback to other available Gemini models). The selected model is printed to the backend console at startup.
 
 **Frontend** — create a `.env` file inside the `frontend` folder:
 
@@ -187,7 +190,7 @@ VITE_API_URL=http://localhost:8000
 **Start the backend server:**
 
 ```bash
-cd backend
+cd Backend
 uvicorn main:app --reload
 ```
 
@@ -230,11 +233,10 @@ Mentora was evaluated through both functional testing (covering sign-up, login, 
 
 - Passwords are never stored in plain text; they are hashed before being stored in PostgreSQL.
 - The Gemini API key is stored as a backend environment variable and is never exposed in the frontend codebase.
+- The specific Gemini model used is auto-selected server-side based on what the configured API key can access; no model name needs to be exposed to or configured by the frontend.
 - All AI-generated responses are constrained via system prompts to remain on-topic, age-appropriate, and free of irrelevant content, in addition to Gemini's built-in safety guardrails.
 - Voice input is processed through the browser's native Web Speech API and is not stored as an audio recording.
 - User and interaction data is associated with authenticated user accounts and stored in PostgreSQL.
-
-
 
 ## Project Team
 
@@ -242,14 +244,12 @@ Mentora was evaluated through both functional testing (covering sign-up, login, 
 <br>
 Eman Kamran
 <br>
-Abdul Hadi Adnan 
+Abdul Hadi Adnan
 
 **Primary Advisor:** Akheem Yousaf
 **Secondary Advisor:** Sharoon Nasim
 
 Department of Computer Science, Forman Christian College (A Chartered University), Lahore, Pakistan.
-
-
 
 ## License
 
