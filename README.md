@@ -1,11 +1,11 @@
 # Mentora — AI-Powered Smart Learning Companion
 
-Mentora is an AI-powered, interactive math tutoring web application built for children aged 7 to 10. It pairs an animated AI tutor — powered by Google's Gemini  — with SVG-based visual storytelling, voice interaction, and gamified learning to make foundational mathematics engaging, accessible, and personalized, without requiring installation or specialized hardware.
+Mentora is an AI-powered, interactive math tutoring web application built for children aged 7 to 10. It pairs an animated AI tutor — powered by Google's Gemini  — with SVG-based visual rendering, voice interaction, and gamified learning to make foundational mathematics engaging, accessible, and personalized, without requiring installation or specialized hardware.
 
 > Senior Project — Department of Computer Science, Forman Christian College (A Chartered University), Lahore, Pakistan.
 
 <p align="center">
-  <img src="/logo.jpeg" alt="Mentora Logo" width="200">
+  <img src="public/Logo.jpeg" alt="Mentora Logo" width="200">
 </p>
 
 ---
@@ -90,35 +90,34 @@ Mentora solves this by combining:
 
 ## System Flow
 
-
+| System Flow | <img src="Screenshots/System Flow.png" alt="System Flow" width="400"> |
 
 ## Screenshots
 
-<!--
-  ADD APPLICATION SCREENSHOTS HERE
-  Suggested screens (from the project report):
-  - Student / Parent Signup
-  - Student / Parent Login
-  - Mentora Welcome Screen
-  - Topic Selection Screen (Addition / Subtraction / Multiplication / Division)
-  - AI Tutor Chat Interface (Learning Mode)
-  - Student Dashboard & Progress Analytics
-  - Parent Profile Screen
-  - Game Arcade Screen
--->
-
-| Screen | Preview |
+| Screen Name | Preview |
 |---|---|
-| Student Signup | <!-- 🖼️ image --> |
-| Parent Signup | <!-- 🖼️ image --> |
-| Student Login | <!-- 🖼️ image --> |
-| Parent Login | <!-- 🖼️ image --> |
-| Mentora Welcome Screen | <!-- 🖼️ image --> |
-| Topic Selection | <!-- 🖼️ image --> |
-| AI Tutor Chat (Learning Mode) | <!-- 🖼️ image --> |
-| Student Dashboard | <!-- 🖼️ image --> |
-| Parent Dashboard | <!-- 🖼️ image --> |
-| Game Arcade | <!-- 🖼️ image --> |
+| Student Signup | <img src="Screenshots/Student Signup Screen.png" alt="Student Signup" width="400"> |
+| Parent Signup | <img src="Screenshots/Parent Signup Screen.png" alt="Parent Signup" width="400"> |
+| Student Login | <img src="Screenshots/Student Login Screen.png" alt="Student Login" width="400"> |
+| Parent Login | <img src="Screenshots/Parent Login Screen.png" alt="Parent Login" width="400"> |
+| Mentora Welcome Screen | <img src="Screenshots/Mentora Welcome Screen.png" alt="Mentora Welcome Screen" width="400"> |
+| Interaction Mode | <img src="Screenshots/Interaction mode Screen.png" alt="Interaction Mode" width="400"> |
+| AI Tutor Chat Interface | <img src="Screenshots/AI Tutor Chat Interface Interaction.png" alt="AI Tutor Chat Interface" width="400"> |
+| Addition Visual Learning Example | <img src="Screenshots/Addition Visual Learning Example.png" alt="Addition Visual Learning Example" width="400"> |
+| Addition Visual Learning | <img src="Screenshots/Addition Visual Learning .png" alt="Addition Visual Learning" width="400"> |
+| Subtraction Visual Learning Example | <img src="Screenshots/Subtraction Visual Learning Example.png" alt="Subtraction Visual Learning Example" width="400"> |
+| Math Adventure Topic Selection | <img src="Screenshots/Math Adventure Topic Selection Screen.png" alt="Math Adventure Topic Selection" width="400"> |
+| Addition Level Selection | <img src="Screenshots/Addition Level Selection Screen.png" alt="Addition Level Selection" width="400"> |
+| Subtraction Level Selection | <img src="Screenshots/Subtraction Level Selection Screen.png" alt="Subtraction Level Selection" width="400"> |
+| Multiplication Level Selection | <img src="Screenshots/Multiplication Level Selection Screen.png" alt="Multiplication Level Selection" width="400"> |
+| Division Level Selection | <img src="Screenshots/Division Level Selection Screen.png" alt="Division Level Selection" width="400"> |
+| Multiplication Level 1 Learning Mode | <img src="Screenshots/Multiplication Level 1 Learning mode.png" alt="Multiplication Level 1 Learning Mode" width="400"> |
+| Multiplication Level 1 Adaptive Learning | <img src="Screenshots/Multiplication Level 1 Adaptive Learning.png" alt="Multiplication Level 1 Adaptive Learning" width="400"> |
+| Student Dashboard & Progress Analytics | <img src="Screenshots/Student Dashboard and Progress Analytics.png" alt="Student Dashboard and Progress Analytics" width="400"> |
+| Game Arcade | <img src="Screenshots/Game Arcade Screen.png" alt="Game Arcade" width="400"> |
+| Student Profile | <img src="Screenshots/Student Profile Screen.png" alt="Student Profile" width="400"> |
+| Parent Profile | <img src="Screenshots/Parent Profile Screen.png" alt="Parent Profile" width="400"> |
+
 
 ## Getting Started
 
@@ -239,9 +238,11 @@ Mentora was evaluated through both functional testing (covering sign-up, login, 
 
 ## Project Team
 
-| Talha Saleem Siddiqui | 
-| Eman Kamran | 
-| Abdul Hadi Adnan | 
+**Talha Saleem Siddiqui**
+<br>
+Eman Kamran
+<br>
+Abdul Hadi Adnan 
 
 **Primary Advisor:** Akheem Yousaf
 **Secondary Advisor:** Sharoon Nasim
