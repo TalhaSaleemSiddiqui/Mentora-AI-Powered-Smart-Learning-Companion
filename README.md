@@ -2,8 +2,6 @@
 
 Mentora is an AI-powered, interactive math tutoring web application built for children aged 7 to 10. It pairs an animated AI tutor — powered by Google's Gemini models — with SVG-based visual rendering, voice interaction, and gamified learning to make foundational mathematics engaging, accessible, and personalized, without requiring installation or specialized hardware.
 
-> Senior Project — Department of Computer Science, Forman Christian College (A Chartered University), Lahore, Pakistan.
-
 <p align="center">
   <img src="public/Logo.jpeg" width="200">
 </p>
@@ -78,8 +76,9 @@ Mentora solves this by combining:
 
 | Layer | Technology |
 |---|---|
-| Frontend | React.js, Framer Motion,html/css |
-| Backend | FastAPI (Python), Node.js, Uvicorn, RestAPI |
+| Frontend | React.js, Vite, Framer Motion, HTML/CSS |
+| Runtime | Node.js (required to run/build the Vite frontend and manage npm packages) |
+| Backend | FastAPI (Python), Uvicorn, REST API |
 | Database | PostgreSQL (via SQLAlchemy ORM) |
 | AI Model | Google Gemini API (model auto-selected at runtime based on API key access — see [Key Features](#key-features)) |
 | Text-to-Speech | gTTS (Google Text-to-Speech) |
@@ -88,33 +87,33 @@ Mentora solves this by combining:
 
 ## System Flow
 
-<img src="Screenshots/System Flow.png" width="500"> 
+<img src="Screenshots/System Flow.png" width="600"> 
 
 ## Screenshots
 
 | Screen Name | Preview |
 |---|---|
-| Student Signup | <img src="Screenshots/Student Signup Screen.png" alt="Student Signup" width="500"> |
-| Parent Signup | <img src="Screenshots/Parent Signup Screen.png" alt="Parent Signup" width="500"> |
-| Student Login | <img src="Screenshots/Student Login Screen.png" alt="Student Login" width="500"> |
-| Parent Login | <img src="Screenshots/Parent Login Screen.png" alt="Parent Login" width="500"> |
-| Mentora Welcome Screen | <img src="Screenshots/Mentora Welcome Screen.png" alt="Mentora Welcome Screen" width="500"> |
-| Interaction Mode | <img src="Screenshots/Interaction mode Screen.png" alt="Interaction Mode" width="500"> |
-| AI Tutor Chat Interface | <img src="Screenshots/AI Tutor Chat Interface Interaction mode.png" alt="AI Tutor Chat Interface" width="500"> |
-| Addition Visual Learning Example | <img src="Screenshots/Addition Visual Learning Example.png" alt="Addition Visual Learning Example" width="500"> |
-| Addition Visual Learning | <img src="Screenshots/Addition Visual Learning .png" alt="Addition Visual Learning" width="500"> |
-| Subtraction Visual Learning Example | <img src="Screenshots/Subtraction Visual Learning Example.png" alt="Subtraction Visual Learning Example" width="500"> |
-| Math Adventure Topic Selection | <img src="Screenshots/Math Adventure Topic Selection Screen (Learning mode).png" alt="Math Adventure Topic Selection" width="500"> |
-| Addition Level Selection | <img src="Screenshots/Addition Level Selection Screen.png" alt="Addition Level Selection" width="500"> |
-| Subtraction Level Selection | <img src="Screenshots/Subtraction Level Selection Screen.png" alt="Subtraction Level Selection" width="500"> |
-| Multiplication Level Selection | <img src="Screenshots/Multiplication Level Selection Screen.png" alt="Multiplication Level Selection" width="500"> |
-| Division Level Selection | <img src="Screenshots/Division Level Selection Screen.png" alt="Division Level Selection" width="500"> |
-| Multiplication Level 1 Learning Mode | <img src="Screenshots/Multiplication Level 1 Learning mode.png" alt="Multiplication Level 1 Learning Mode" width="500"> |
-| Multiplication Level 1 Adaptive Learning | <img src="Screenshots/Multiplication Level 1 Adaptive Learning.png" alt="Multiplication Level 1 Adaptive Learning" width="500"> |
-| Student Dashboard & Progress Analytics | <img src="Screenshots/Student Dashboard and Progress Analytics.png" alt="Student Dashboard and Progress Analytics" width="500"> |
-| Game Arcade | <img src="Screenshots/Game Arcade Screen.png" alt="Game Arcade" width="500"> |
-| Student Profile | <img src="Screenshots/Student Profile Screen.png" alt="Student Profile" width="500"> |
-| Parent Profile | <img src="Screenshots/Parent Profile Screen.png" alt="Parent Profile" width="500"> |
+| Student Signup | <img src="Screenshots/Student Signup Screen.png" alt="Student Signup" width="600"> |
+| Parent Signup | <img src="Screenshots/Parent Signup Screen.png" alt="Parent Signup" width="600"> |
+| Student Login | <img src="Screenshots/Student Login Screen.png" alt="Student Login" width="600"> |
+| Parent Login | <img src="Screenshots/Parent Login Screen.png" alt="Parent Login" width="600"> |
+| Mentora Welcome Screen | <img src="Screenshots/Mentora Welcome Screen.png" alt="Mentora Welcome Screen" width="600"> |
+| Interaction Mode | <img src="Screenshots/Interaction mode Screen.png" alt="Interaction Mode" width="600"> |
+| AI Tutor Chat Interface | <img src="Screenshots/AI Tutor Chat Interface Interaction mode.png" alt="AI Tutor Chat Interface" width="600"> |
+| Addition Visual Learning Example | <img src="Screenshots/Addition Visual Learning Example.png" alt="Addition Visual Learning Example" width="600"> |
+| Addition Visual Learning | <img src="Screenshots/Addition Visual Learning .png" alt="Addition Visual Learning" width="600"> |
+| Subtraction Visual Learning Example | <img src="Screenshots/Subtraction Visual Learning Example.png" alt="Subtraction Visual Learning Example" width="600"> |
+| Math Adventure Topic Selection | <img src="Screenshots/Math Adventure Topic Selection Screen (Learning mode).png" alt="Math Adventure Topic Selection" width="600"> |
+| Addition Level Selection | <img src="Screenshots/Addition Level Selection Screen.png" alt="Addition Level Selection" width="600"> |
+| Subtraction Level Selection | <img src="Screenshots/Subtraction Level Selection Screen.png" alt="Subtraction Level Selection" width="600"> |
+| Multiplication Level Selection | <img src="Screenshots/Multiplication Level Selection Screen.png" alt="Multiplication Level Selection" width="600"> |
+| Division Level Selection | <img src="Screenshots/Division Level Selection Screen.png" alt="Division Level Selection" width="600"> |
+| Multiplication Level 1 Learning Mode | <img src="Screenshots/Multiplication Level 1 Learning mode.png" alt="Multiplication Level 1 Learning Mode" width="600"> |
+| Multiplication Level 1 Adaptive Learning | <img src="Screenshots/Multiplication Level 1 Adaptive Learning.png" alt="Multiplication Level 1 Adaptive Learning" width="600"> |
+| Student Dashboard & Progress Analytics | <img src="Screenshots/Student Dashboard and Progress Analytics.png" alt="Student Dashboard and Progress Analytics" width="600"> |
+| Game Arcade | <img src="Screenshots/Game Arcade Screen.png" alt="Game Arcade" width="600"> |
+| Student Profile | <img src="Screenshots/Student Profile Screen.png" alt="Student Profile" width="600"> |
+| Parent Profile | <img src="Screenshots/Parent Profile Screen.png" alt="Parent Profile" width="600"> |
 
 ## Getting Started
 
@@ -132,14 +131,22 @@ Make sure the following are installed before setup:
 
 ### Installation
 
+This repository has a **flat frontend layout**: the project root itself is the Vite/React frontend (it contains `package.json`, `vite.config.js`, `index.html`, `src/`, and `public/`). The FastAPI backend lives in its own `Backend/` subfolder. There is no separate `frontend/` folder.
+
 **1. Clone the repository**
 
 ```bash
 git clone <project-repository-link>
-cd Mentora
+cd Mentora-AI-Powered-Smart-Learning-Companion
 ```
 
-**2. Set up the backend**
+**2. Set up the frontend (repository root)**
+
+```bash
+npm install
+```
+
+**3. Set up the backend**
 
 ```bash
 cd Backend
@@ -155,16 +162,9 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-**3. Set up the frontend**
-
-```bash
-cd ../frontend
-npm install
-```
-
 ### Environment Variables
 
-**Backend** — create a `.env` file inside the `backend` folder:
+**Backend** — create a `.env` file inside the `Backend` folder:
 
 ```env
 GEMINI_API_KEY=your_gemini_api_key
@@ -177,7 +177,7 @@ SENDER_PASSWORD=your_gmail_app_password
 
 > The backend does **not** require you to specify a Gemini model name. On startup it automatically queries the Gemini API for the models your `GEMINI_API_KEY` can access and selects the best available one (preferring newer Flash models, e.g. `gemini-3.5-flash` or `gemini-2.5-flash`, with automatic fallback to other available Gemini models). The selected model is printed to the backend console at startup.
 
-**Frontend** — create a `.env` file inside the `frontend` folder:
+**Frontend** — create a `.env` file in the **repository root** (not inside a `frontend` subfolder, since the root itself is the frontend):
 
 ```env
 VITE_API_URL=http://localhost:8000
@@ -196,10 +196,9 @@ uvicorn main:app --reload
 
 The backend will run at: `http://localhost:8000`
 
-**Start the frontend development server** (in a separate terminal):
+**Start the frontend development server** (in a separate terminal, from the repository root):
 
 ```bash
-cd frontend
 npm run dev
 ```
 
