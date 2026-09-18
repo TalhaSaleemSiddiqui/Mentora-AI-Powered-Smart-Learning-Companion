@@ -1,0 +1,1907 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pizza Party Split - Division Game</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700;900&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-color: #FFF8F0;
+            --table-color: #8B5A2B;
+            --table-light: #A67B5B;
+            --pizza-crust: #D2691E;
+            --pizza-cheese: #FFD700;
+            --text-dark: #2C1810;
+            --accent: #FF6B35;
+            --success: #4CAF50;
+            --error: #E74C3C;
+        }
+
+        body {
+            font-family: 'Fredoka', sans-serif;
+            background: linear-gradient(135deg, #FFF8F0 0%, #FFECD2 50%, #FFF5E6 100%);
+            min-height: 100vh;
+            overflow: hidden;
+            color: var(--text-dark);
+        }
+
+        /* ===== HEADER ===== */
+        .game-header {
+            background: linear-gradient(90deg, #FF6B35 0%, #FF8E53 100%);
+            padding: 12px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            position: relative;
+            z-index: 100;
+        }
+
+        .logo {
+            font-size: 1.6rem;
+            font-weight: 900;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-icon {
+            font-size: 2rem;
+            animation: wiggle 2s ease-in-out infinite;
+        }
+
+        @keyframes wiggle {
+            0%, 100% { transform: rotate(-5deg); }
+            50% { transform: rotate(5deg); }
+        }
+
+        .problem-display {
+            background: white;
+            padding: 10px 30px;
+            border-radius: 50px;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            letter-spacing: 2px;
+        }
+
+        .problem-display .equals {
+            color: var(--accent);
+        }
+
+        .problem-display .question {
+            color: var(--accent);
+            font-size: 1.8rem;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+        }
+
+        .level-info {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .level-badge, .score-display {
+            background: rgba(255,255,255,0.25);
+            padding: 8px 18px;
+            border-radius: 20px;
+            color: white;
+            font-weight: 700;
+            font-size: 1rem;
+        }
+
+        /* ===== GAME AREA ===== */
+        .game-container {
+            position: relative;
+            width: 100vw;
+            height: calc(100vh - 70px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* ===== TABLE ===== */
+        .table {
+            width: 360px;
+            height: 360px;
+            background: radial-gradient(circle at 40% 40%, var(--table-light), var(--table-color));
+            border-radius: 50%;
+            position: absolute;
+            box-shadow: 
+                0 25px 60px rgba(0,0,0,0.3),
+                inset 0 -10px 30px rgba(0,0,0,0.2),
+                inset 0 10px 30px rgba(255,255,255,0.1);
+            z-index: 5;
+        }
+
+        .table::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 320px;
+            height: 320px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 45% 45%, #C49A6C, #A07850);
+            box-shadow: inset 0 5px 15px rgba(0,0,0,0.15);
+        }
+
+        /* ===== PIZZA CONTAINER ===== */
+        .pizza-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 280px;
+            height: 280px;
+            z-index: 20;
+        }
+
+        /* ===== REAL PIZZA SVG ===== */
+        .real-pizza {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            filter: drop-shadow(0 8px 20px rgba(0,0,0,0.2));
+        }
+
+        .real-pizza svg {
+            width: 100%;
+            height: 100%;
+            overflow: visible;
+        }
+
+        .pizza-slice-svg {
+            touch-action: none;
+            cursor: grab;
+            transition: opacity 0.3s ease, filter 0.2s ease;
+            transform-origin: 140px 140px;
+        }
+
+        .pizza-slice-svg:hover:not(.taken) {
+            filter: brightness(1.1);
+        }
+
+        .pizza-slice-svg:active:not(.taken) {
+            cursor: grabbing;
+        }
+
+        .pizza-slice-svg.taken {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* Pizza center counter */
+        .pizza-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255,255,255,0.95);
+            width: 85px;
+            height: 85px;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            z-index: 30;
+            border: 3px solid var(--pizza-crust);
+            pointer-events: none;
+        }
+
+        .pizza-center .number {
+            font-size: 2rem;
+            font-weight: 900;
+            color: var(--accent);
+            line-height: 1;
+        }
+
+        .pizza-center .label {
+            font-size: 0.6rem;
+            color: #888;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* ===== FLYING SLICE ===== */
+        .flying-slice-real {
+            position: fixed;
+            width: 140px;
+            height: 140px;
+            z-index: 999;
+            pointer-events: none;
+            transition: none;
+            filter: drop-shadow(0 8px 20px rgba(0,0,0,0.3));
+        }
+
+        .flying-slice-real svg {
+            width: 100%;
+            height: 100%;
+            overflow: visible;
+        }
+
+        /* ===== FRIENDS - CARTOONISH AVATARS ===== */
+        .friend {
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            z-index: 50;
+            user-select: none;
+        }
+
+        .friend:hover {
+            transform: translate(-50%, -50%) scale(1.05);
+        }
+
+        .friend:active {
+            transform: translate(-50%, -50%) scale(0.98);
+        }
+
+        .friend-char {
+            position: relative;
+            width: 90px;
+            height: 110px;
+            animation: breathe 2.5s ease-in-out infinite;
+        }
+
+        @keyframes breathe {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-6px); }
+        }
+
+        .char-head {
+            position: absolute;
+            width: 70px;
+            height: 65px;
+            border-radius: 50%;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .hair {
+            position: absolute;
+            z-index: 11;
+        }
+
+        .hair-spiky {
+            width: 80px;
+            height: 35px;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: currentColor;
+            border-radius: 40% 40% 0 0;
+            clip-path: polygon(0% 100%, 15% 20%, 25% 80%, 35% 10%, 45% 70%, 55% 15%, 65% 75%, 75% 25%, 85% 80%, 100% 100%);
+        }
+
+        .hair-bob {
+            width: 78px;
+            height: 40px;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: currentColor;
+            border-radius: 50% 50% 30% 30%;
+        }
+
+        .hair-curly {
+            width: 82px;
+            height: 30px;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        .hair-curly::before, .hair-curly::after {
+            content: '';
+            position: absolute;
+            width: 28px;
+            height: 28px;
+            background: currentColor;
+            border-radius: 50%;
+            top: 0;
+        }
+        .hair-curly::before { left: 5px; }
+        .hair-curly::after { right: 5px; }
+        .hair-curly .mid {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background: currentColor;
+            border-radius: 50%;
+            left: 50%;
+            transform: translateX(-50%);
+            top: -5px;
+        }
+
+        .hair-ponytail {
+            width: 76px;
+            height: 35px;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: currentColor;
+            border-radius: 50% 50% 20% 20%;
+        }
+        .hair-ponytail::after {
+            content: '';
+            position: absolute;
+            width: 25px;
+            height: 35px;
+            background: currentColor;
+            border-radius: 50%;
+            top: 15px;
+            right: -5px;
+        }
+
+        .hair-bangs {
+            width: 74px;
+            height: 25px;
+            top: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: currentColor;
+            border-radius: 50% 50% 0 0;
+        }
+        .hair-bangs::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: currentColor;
+            border-radius: 50% 50% 0 50%;
+            top: 10px;
+            left: 15px;
+        }
+
+        .hair-afro {
+            width: 85px;
+            height: 50px;
+            top: -18px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: currentColor;
+            border-radius: 50%;
+        }
+
+        .hair-bun {
+            width: 72px;
+            height: 30px;
+            top: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: currentColor;
+            border-radius: 50%;
+        }
+        .hair-bun::after {
+            content: '';
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background: currentColor;
+            border-radius: 50%;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .char-face {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        .eye {
+            position: absolute;
+            width: 12px;
+            height: 14px;
+            background: white;
+            border-radius: 50%;
+            top: 22px;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .eye::after {
+            content: '';
+            position: absolute;
+            width: 7px;
+            height: 8px;
+            background: #2C1810;
+            border-radius: 50%;
+            top: 4px;
+            left: 3px;
+            animation: blink 4s infinite;
+        }
+
+        @keyframes blink {
+            0%, 96%, 100% { transform: scaleY(1); }
+            98% { transform: scaleY(0.1); }
+        }
+
+        .eye.left { left: 14px; }
+        .eye.right { right: 14px; }
+
+        .eyebrow {
+            position: absolute;
+            width: 14px;
+            height: 4px;
+            background: #2C1810;
+            border-radius: 4px;
+            top: 16px;
+            transition: transform 0.3s ease;
+        }
+
+        .eyebrow.left { left: 13px; transform: rotate(-5deg); }
+        .eyebrow.right { right: 13px; transform: rotate(5deg); }
+
+        .eyebrow.happy { transform: rotate(-15deg) translateY(-2px); }
+        .eyebrow.happy.right { transform: rotate(15deg) translateY(-2px); }
+        .eyebrow.sad { transform: rotate(15deg) translateY(2px); }
+        .eyebrow.sad.right { transform: rotate(-15deg) translateY(2px); }
+        .eyebrow.surprised { transform: translateY(-4px); }
+
+        .blush {
+            position: absolute;
+            width: 14px;
+            height: 8px;
+            background: rgba(255, 100, 100, 0.3);
+            border-radius: 50%;
+            top: 36px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .blush.left { left: 8px; }
+        .blush.right { right: 8px; }
+        .blush.show { opacity: 1; }
+
+        .mouth {
+            position: absolute;
+            bottom: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            transition: all 0.3s ease;
+        }
+
+        .mouth-smile {
+            width: 24px;
+            height: 12px;
+            border-bottom: 3px solid #2C1810;
+            border-radius: 0 0 20px 20px;
+        }
+
+        .mouth-big-smile {
+            width: 28px;
+            height: 16px;
+            border-bottom: 3px solid #2C1810;
+            border-radius: 0 0 25px 25px;
+            background: #FF6B6B;
+        }
+
+        .mouth-sad {
+            width: 20px;
+            height: 10px;
+            border-top: 3px solid #2C1810;
+            border-radius: 20px 20px 0 0;
+            bottom: 8px;
+        }
+
+        .mouth-o {
+            width: 14px;
+            height: 16px;
+            border: 2px solid #2C1810;
+            border-radius: 50%;
+            background: #2C1810;
+            bottom: 10px;
+        }
+
+        .mouth-eating {
+            width: 20px;
+            height: 18px;
+            background: #2C1810;
+            border-radius: 0 0 15px 15px;
+            animation: chew 0.5s ease-in-out infinite;
+        }
+
+        @keyframes chew {
+            0%, 100% { height: 18px; }
+            50% { height: 8px; }
+        }
+
+        .char-body {
+            position: absolute;
+            width: 55px;
+            height: 50px;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            border-radius: 25px 25px 10px 10px;
+            z-index: 5;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+        }
+
+        .arm {
+            position: absolute;
+            width: 18px;
+            height: 30px;
+            background: currentColor;
+            border-radius: 10px;
+            top: 5px;
+            z-index: 4;
+            transition: transform 0.3s ease;
+        }
+
+        .arm.left {
+            left: -8px;
+            transform: rotate(20deg);
+            transform-origin: top right;
+        }
+
+        .arm.right {
+            right: -8px;
+            transform: rotate(-20deg);
+            transform-origin: top left;
+        }
+
+        .arm.wave-left {
+            animation: waveLeft 0.6s ease-in-out infinite;
+        }
+
+        .arm.wave-right {
+            animation: waveRight 0.6s ease-in-out infinite;
+        }
+
+        @keyframes waveLeft {
+            0%, 100% { transform: rotate(20deg); }
+            50% { transform: rotate(-40deg); }
+        }
+
+        @keyframes waveRight {
+            0%, 100% { transform: rotate(-20deg); }
+            50% { transform: rotate(40deg); }
+        }
+
+        .hand {
+            position: absolute;
+            width: 14px;
+            height: 14px;
+            background: #FDBCB4;
+            border-radius: 50%;
+            bottom: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .legs {
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 8px;
+            z-index: 3;
+        }
+
+        .leg {
+            width: 16px;
+            height: 18px;
+            background: #5D4037;
+            border-radius: 0 0 8px 8px;
+        }
+
+        .friend-plate {
+            width: 100px;
+            height: 60px;
+            background: linear-gradient(180deg, #FFFFFF 0%, #F5F5F5 100%);
+            border-radius: 50%;
+            margin-top: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1), inset 0 2px 5px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            border: 2px solid #E8E8E8;
+            flex-wrap: wrap;
+            padding: 5px;
+            gap: 2px;
+        }
+
+        .plate-slices {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 2px;
+            max-width: 85px;
+        }
+
+        .mini-slice {
+            width: 22px;
+            height: 22px;
+            position: relative;
+            animation: popIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        .mini-slice svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0) rotate(-180deg); }
+            100% { transform: scale(1) rotate(0deg); }
+        }
+
+        .plate-count {
+            position: absolute;
+            bottom: -10px;
+            background: var(--accent);
+            color: white;
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: 900;
+            font-size: 0.9rem;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        }
+
+        .friend-name {
+            margin-top: 10px;
+            font-weight: 700;
+            font-size: 1rem;
+            color: var(--text-dark);
+            background: rgba(255,255,255,0.85);
+            padding: 3px 12px;
+            border-radius: 12px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+        }
+
+        .click-hint {
+            position: absolute;
+            top: -35px;
+            background: var(--accent);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+            white-space: nowrap;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+        }
+
+        .friend:hover .click-hint {
+            opacity: 1;
+        }
+
+        /* Friend color themes */
+        .theme-1 { --skin: #FDBCB4; --hair: #FF6B6B; --shirt: #FF6B6B; }
+        .theme-2 { --skin: #F5C6A5; --hair: #4A4A4A; --shirt: #4ECDC4; }
+        .theme-3 { --skin: #E8C4A0; --hair: #D4A574; --shirt: #45B7D1; }
+        .theme-4 { --skin: #FDBCB4; --hair: #2C1810; --shirt: #96CEB4; }
+        .theme-5 { --skin: #F5C6A5; --hair: #FFEAA7; --shirt: #FFEAA7; }
+        .theme-6 { --skin: #E8C4A0; --hair: #DDA0DD; --shirt: #DDA0DD; }
+        .theme-7 { --skin: #FDBCB4; --hair: #98D8C8; --shirt: #98D8C8; }
+        .theme-8 { --skin: #F5C6A5; --hair: #FFB74D; --shirt: #FFB74D; }
+
+        .theme-1 .char-head, .theme-1 .hand { background: var(--skin); }
+        .theme-1 .char-body, .theme-1 .arm { background: var(--shirt); }
+        .theme-1 .hair-spiky, .theme-1 .hair-bob, .theme-1 .hair-curly, 
+        .theme-1 .hair-ponytail, .theme-1 .hair-bangs, .theme-1 .hair-afro, 
+        .theme-1 .hair-bun { color: var(--hair); background: var(--hair); }
+
+        .theme-2 .char-head, .theme-2 .hand { background: var(--skin); }
+        .theme-2 .char-body, .theme-2 .arm { background: var(--shirt); }
+        .theme-2 .hair-spiky, .theme-2 .hair-bob, .theme-2 .hair-curly, 
+        .theme-2 .hair-ponytail, .theme-2 .hair-bangs, .theme-2 .hair-afro, 
+        .theme-2 .hair-bun { color: var(--hair); background: var(--hair); }
+
+        .theme-3 .char-head, .theme-3 .hand { background: var(--skin); }
+        .theme-3 .char-body, .theme-3 .arm { background: var(--shirt); }
+        .theme-3 .hair-spiky, .theme-3 .hair-bob, .theme-3 .hair-curly, 
+        .theme-3 .hair-ponytail, .theme-3 .hair-bangs, .theme-3 .hair-afro, 
+        .theme-3 .hair-bun { color: var(--hair); background: var(--hair); }
+
+        .theme-4 .char-head, .theme-4 .hand { background: var(--skin); }
+        .theme-4 .char-body, .theme-4 .arm { background: var(--shirt); }
+        .theme-4 .hair-spiky, .theme-4 .hair-bob, .theme-4 .hair-curly, 
+        .theme-4 .hair-ponytail, .theme-4 .hair-bangs, .theme-4 .hair-afro, 
+        .theme-4 .hair-bun { color: var(--hair); background: var(--hair); }
+
+        .theme-5 .char-head, .theme-5 .hand { background: var(--skin); }
+        .theme-5 .char-body, .theme-5 .arm { background: var(--shirt); }
+        .theme-5 .hair-spiky, .theme-5 .hair-bob, .theme-5 .hair-curly, 
+        .theme-5 .hair-ponytail, .theme-5 .hair-bangs, .theme-5 .hair-afro, 
+        .theme-5 .hair-bun { color: var(--hair); background: var(--hair); }
+
+        .theme-6 .char-head, .theme-6 .hand { background: var(--skin); }
+        .theme-6 .char-body, .theme-6 .arm { background: var(--shirt); }
+        .theme-6 .hair-spiky, .theme-6 .hair-bob, .theme-6 .hair-curly, 
+        .theme-6 .hair-ponytail, .theme-6 .hair-bangs, .theme-6 .hair-afro, 
+        .theme-6 .hair-bun { color: var(--hair); background: var(--hair); }
+
+        .theme-7 .char-head, .theme-7 .hand { background: var(--skin); }
+        .theme-7 .char-body, .theme-7 .arm { background: var(--shirt); }
+        .theme-7 .hair-spiky, .theme-7 .hair-bob, .theme-7 .hair-curly, 
+        .theme-7 .hair-ponytail, .theme-7 .hair-bangs, .theme-7 .hair-afro, 
+        .theme-7 .hair-bun { color: var(--hair); background: var(--hair); }
+
+        .theme-8 .char-head, .theme-8 .hand { background: var(--skin); }
+        .theme-8 .char-body, .theme-8 .arm { background: var(--shirt); }
+        .theme-8 .hair-spiky, .theme-8 .hair-bob, .theme-8 .hair-curly, 
+        .theme-8 .hair-ponytail, .theme-8 .hair-bangs, .theme-8 .hair-afro, 
+        .theme-8 .hair-bun { color: var(--hair); background: var(--hair); }
+
+        /* ===== CONTROLS ===== */
+        .controls {
+            position: absolute;
+            bottom: 25px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 12px;
+            z-index: 100;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 50px;
+            font-family: 'Fredoka', sans-serif;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-check {
+            background: linear-gradient(90deg, var(--success), #66BB6A);
+            color: white;
+        }
+
+        .btn-check:disabled {
+            background: #CCC;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-reset {
+            background: linear-gradient(90deg, #78909C, #90A4AE);
+            color: white;
+        }
+
+        .btn-hint {
+            background: linear-gradient(90deg, #FFD54F, #FFCA28);
+            color: var(--text-dark);
+        }
+
+        /* ===== FEEDBACK ===== */
+        .feedback-message {
+            position: absolute;
+            top: 90px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-20px);
+            background: white;
+            padding: 12px 35px;
+            border-radius: 50px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            opacity: 0;
+            transition: all 0.4s ease;
+            z-index: 200;
+            pointer-events: none;
+        }
+
+        .feedback-message.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .feedback-message.correct {
+            color: var(--success);
+            border: 3px solid var(--success);
+        }
+
+        .feedback-message.wrong {
+            color: var(--error);
+            border: 3px solid var(--error);
+        }
+
+        /* ===== MODALS ===== */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .modal {
+            background: white;
+            padding: 35px 45px;
+            border-radius: 30px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 520px;
+            transform: scale(0.8);
+            transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        .modal-overlay.active .modal {
+            transform: scale(1);
+        }
+
+        .modal-icon {
+            font-size: 3.5rem;
+            margin-bottom: 10px;
+        }
+
+        .modal h2 {
+            font-size: 1.8rem;
+            margin-bottom: 8px;
+            color: var(--text-dark);
+        }
+
+        .modal p {
+            font-size: 1.1rem;
+            color: #666;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .modal .btn {
+            margin: 0 5px;
+        }
+
+        /* ===== LEVEL SUMMARY ===== */
+        .level-summary {
+            background: #FFF8F0;
+            border-radius: 20px;
+            padding: 20px;
+            margin: 15px 0;
+            text-align: left;
+        }
+
+        .level-summary h3 {
+            text-align: center;
+            color: var(--accent);
+            margin-bottom: 12px;
+            font-size: 1.3rem;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            margin: 5px 0;
+            background: white;
+            border-radius: 12px;
+            font-size: 1rem;
+        }
+
+        .summary-row .problem {
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+
+        .summary-row .answer {
+            font-weight: 700;
+            color: var(--success);
+        }
+
+        .summary-row .pts {
+            font-weight: 600;
+            color: var(--accent);
+            font-size: 0.9rem;
+        }
+
+        .summary-total {
+            text-align: center;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 2px dashed #FFD54F;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        /* ===== ANIMATIONS ===== */
+        @keyframes celebrate {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            25% { transform: translateY(-25px) rotate(-5deg); }
+            75% { transform: translateY(-25px) rotate(5deg); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-8px); }
+            75% { transform: translateX(8px); }
+        }
+
+        @keyframes jump {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-40px); }
+        }
+
+        .celebrating .friend-char {
+            animation: celebrate 0.6s ease-in-out infinite !important;
+        }
+
+        .celebrating .arm.left { animation: waveLeft 0.4s ease-in-out infinite !important; }
+        .celebrating .arm.right { animation: waveRight 0.4s ease-in-out infinite !important; }
+
+        .sad-shake .friend-char {
+            animation: shake 0.5s ease-in-out !important;
+        }
+
+        .jumping .friend-char {
+            animation: jump 0.5s ease-in-out !important;
+        }
+
+        /* ===== INSTRUCTIONS ===== */
+        .instructions {
+            position: absolute;
+            top: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255,255,255,0.9);
+            padding: 8px 22px;
+            border-radius: 20px;
+            font-size: 0.95rem;
+            color: #666;
+            z-index: 90;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            font-weight: 600;
+        }
+
+        /* ===== CONFETTI ===== */
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            z-index: 999;
+            animation: confettiFall 3s ease-out forwards;
+        }
+
+        @keyframes confettiFall {
+            0% { transform: translateY(-100px) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+        }
+
+        /* ===== HINT BOX ===== */
+        .hint-box {
+            position: absolute;
+            top: 110px;
+            right: 25px;
+            background: #FFF9C4;
+            border: 2px solid #FFD54F;
+            padding: 12px 18px;
+            border-radius: 15px;
+            max-width: 200px;
+            font-size: 0.9rem;
+            color: var(--text-dark);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            opacity: 0;
+            transform: translateX(20px);
+            transition: all 0.4s ease;
+            z-index: 150;
+            font-weight: 600;
+        }
+
+        .hint-box.show {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .hint-box::before {
+            content: '💡 ';
+        }
+
+        /* ===== PROGRESS BAR ===== */
+        .progress-container {
+            position: absolute;
+            bottom: 90px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 280px;
+            height: 8px;
+            background: rgba(0,0,0,0.1);
+            border-radius: 10px;
+            overflow: hidden;
+            z-index: 90;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent), #FF8E53);
+            border-radius: 10px;
+            transition: width 0.5s ease;
+        }
+
+        #unified-start-menu {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-family: 'Fredoka', sans-serif;
+        }
+        #unified-start-menu h1 {
+            font-size: 4rem;
+            margin-bottom: 2rem;
+            text-shadow: 0 0 20px rgba(102, 126, 234, 0.8);
+            color: #ffd700;
+        }
+        #unified-start-menu button {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border: none;
+            padding: 15px 40px;
+            font-size: 2rem;
+            border-radius: 50px;
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+            transition: transform 0.2s;
+            font-family: 'Fredoka', sans-serif;
+        }
+        #unified-start-menu button:hover {
+            transform: scale(1.05);
+        }
+    </style>
+
+    <script src="heartwarming-tts.js"></script>
+    <script src="game-music.js"></script>
+</head>
+<body>
+    <div id="unified-start-menu">
+        <h1>Pizza Party Split</h1>
+        <button onclick="AudioSystem.play('click'); document.getElementById('unified-start-menu').style.display='none'; initGame();">START GAME</button>
+    </div>
+
+    <!-- Header -->
+    <div class="game-header">
+        <div class="logo">
+            <span class="logo-icon">🍕</span>
+            <span>Pizza Party Split</span>
+        </div>
+        <div class="problem-display" id="problemDisplay">
+            <span id="dividend">--</span> ÷ <span id="divisor">--</span> <span class="equals">=</span> <span class="question" id="questionMark">?</span>
+        </div>
+        <div class="level-info">
+            <div class="level-badge">Level <span id="levelNum">1</span> / 5</div>
+            <div class="score-display">Score: <span id="score">0</span></div>
+        </div>
+    </div>
+
+    <!-- Instructions -->
+    <div class="instructions" id="instructions">
+        Click a friend to give them a slice from the real pizza! Share all slices equally.
+    </div>
+
+    <!-- Game Area -->
+    <div class="game-container" id="gameContainer">
+        <!-- Table -->
+        <div class="table"></div>
+
+        <!-- Real Pizza -->
+        <div class="pizza-container">
+            <div class="real-pizza" id="realPizza">
+                <svg viewBox="0 0 280 280" id="pizzaSvg">
+                    <!-- Slices will be generated here -->
+                </svg>
+                <div class="pizza-center">
+                    <div class="number" id="remainingSlices">--</div>
+                    <div class="label">slices left</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Friends container -->
+        <div id="friendsContainer"></div>
+
+        <!-- Feedback -->
+        <div class="feedback-message" id="feedback"></div>
+
+        <!-- Hint Box -->
+        <div class="hint-box" id="hintBox"></div>
+
+        <!-- Progress -->
+        <div class="progress-container">
+            <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+        </div>
+
+        <!-- Controls -->
+        <div class="controls">
+            <button class="btn btn-hint" id="hintBtn" onclick="showHint()">Hint</button>
+            <button class="btn btn-reset" onclick="resetLevel()">Reset</button>
+            <button class="btn btn-check" id="checkBtn" onclick="checkAnswer()" disabled>Check Answer</button>
+        </div>
+    </div>
+
+    <!-- Level Complete Modal -->
+    <div class="modal-overlay" id="levelModal">
+        <div class="modal">
+            <div class="modal-icon" id="modalIcon">🎉</div>
+            <h2 id="modalTitle">Level Complete!</h2>
+            <p id="modalText">You solved it!</p>
+            <button class="btn btn-check" id="modalBtn" onclick="nextLevel()">Next Level</button>
+        </div>
+    </div>
+
+    <!-- Victory Modal with Summary -->
+    <div class="modal-overlay" id="victoryModal">
+        <div class="modal">
+            <div class="modal-icon">🏆</div>
+            <h2>You Won!</h2>
+            <p>Amazing job! You completed all 5 levels and mastered division!</p>
+
+            <div class="level-summary" id="levelSummary">
+                <h3>📋 Division Summary</h3>
+                <!-- Populated by JS -->
+            </div>
+
+            <div class="summary-total" id="summaryTotal">Final Score: 0</div>
+            <button class="btn btn-check" onclick="restartGame()">Play Again</button>
+        </div>
+    </div>
+
+    <script>
+        // ===== AUDIO SYSTEM =====
+        const AudioSystem = {
+            ctx: null,
+            init() {
+                if (!this.ctx) {
+                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+            },
+            play(type) {
+                this.init();
+                if (!this.ctx) return;
+                if (this.ctx.state === 'suspended') this.ctx.resume();
+                const now = this.ctx.currentTime;
+                if (type === 'click') {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.connect(gain); gain.connect(this.ctx.destination);
+                    osc.frequency.setValueAtTime(400, now);
+                    osc.frequency.exponentialRampToValueAtTime(100, now + 0.05);
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
+                    osc.start(now); osc.stop(now + 0.05);
+                } else if (type === 'correct') {
+                    const osc1 = this.ctx.createOscillator();
+                    const osc2 = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc1.connect(gain); osc2.connect(gain); gain.connect(this.ctx.destination);
+                    osc1.type = 'triangle'; osc2.type = 'sine';
+                    osc1.frequency.setValueAtTime(523.25, now); // C5
+                    osc1.frequency.setValueAtTime(659.25, now + 0.1); // E5
+                    osc1.frequency.setValueAtTime(783.99, now + 0.2); // G5
+                    osc2.frequency.setValueAtTime(523.25 * 2, now);
+                    osc2.frequency.setValueAtTime(659.25 * 2, now + 0.1);
+                    osc2.frequency.setValueAtTime(783.99 * 2, now + 0.2);
+                    gain.gain.setValueAtTime(0.15, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+                    osc1.start(now); osc2.start(now);
+                    osc1.stop(now + 0.4); osc2.stop(now + 0.4);
+                } else if (type === 'wrong') {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.connect(gain); gain.connect(this.ctx.destination);
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(150, now);
+                    osc.frequency.linearRampToValueAtTime(80, now + 0.25);
+                    gain.gain.setValueAtTime(0.12, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+                    osc.start(now); osc.stop(now + 0.25);
+                }
+            },
+            speak(text) {
+                if (typeof HeartwarmingTTS !== 'undefined') {
+                    HeartwarmingTTS.speak(text);
+                }
+            }
+        };
+
+        // ===== GAME DATA =====
+        const levels = [
+            { dividend: 12, divisor: 3, friends: [
+                { name: 'Alex', hair: 'spiky', skin: 1 },
+                { name: 'Sam', hair: 'bob', skin: 2 },
+                { name: 'Jordan', hair: 'curly', skin: 3 }
+            ]},
+            { dividend: 20, divisor: 4, friends: [
+                { name: 'Mia', hair: 'ponytail', skin: 4 },
+                { name: 'Lucas', hair: 'spiky', skin: 5 },
+                { name: 'Emma', hair: 'bangs', skin: 6 },
+                { name: 'Ryan', hair: 'afro', skin: 7 }
+            ]},
+            { dividend: 28, divisor: 7, friends: [
+                { name: 'Zoe', hair: 'bob', skin: 1 },
+                { name: 'Max', hair: 'spiky', skin: 2 },
+                { name: 'Ava', hair: 'ponytail', skin: 3 },
+                { name: 'Leo', hair: 'curly', skin: 4 },
+                { name: 'Lily', hair: 'bangs', skin: 5 },
+                { name: 'Noah', hair: 'afro', skin: 6 },
+                { name: 'Chloe', hair: 'bun', skin: 7 }
+            ]},
+            { dividend: 36, divisor: 6, friends: [
+                { name: 'Ben', hair: 'spiky', skin: 1 },
+                { name: 'Sophie', hair: 'ponytail', skin: 2 },
+                { name: 'Oliver', hair: 'curly', skin: 3 },
+                { name: 'Grace', hair: 'bob', skin: 4 },
+                { name: 'Jack', hair: 'afro', skin: 5 },
+                { name: 'Isla', hair: 'bangs', skin: 6 }
+            ]},
+            { dividend: 48, divisor: 8, friends: [
+                { name: 'Tom', hair: 'spiky', skin: 1 },
+                { name: 'Amy', hair: 'bob', skin: 2 },
+                { name: 'James', hair: 'curly', skin: 3 },
+                { name: 'Sarah', hair: 'ponytail', skin: 4 },
+                { name: 'Daniel', hair: 'afro', skin: 5 },
+                { name: 'Kate', hair: 'bangs', skin: 6 },
+                { name: 'Harry', hair: 'spiky', skin: 7 },
+                { name: 'Lucy', hair: 'bun', skin: 8 }
+            ]}
+        ];
+
+        // ===== STATE =====
+        let currentLevel = 0;
+        let score = 0;
+        let slicesRemaining = 0;
+        let friendSlices = [];
+        let hintUsed = false;
+        let attempts = 0;
+        let levelScores = [];
+
+        // ===== INIT =====
+        function initGame() {
+            if (typeof GameMusic !== 'undefined') {
+                GameMusic.start({ track: 'gameShow', volume: 0.28, fadeInMs: 2000 });
+            }
+            currentLevel = 0;
+            score = 0;
+            levelScores = [];
+            loadLevel(0);
+        }
+
+        function loadLevel(levelIndex) {
+            const level = levels[levelIndex];
+            const instructionText = `Level ${levelIndex + 1}: Share ${level.dividend} slices among ${level.divisor} friends equally.`;
+            AudioSystem.speak(instructionText);
+            currentLevel = levelIndex;
+            slicesRemaining = level.dividend;
+            friendSlices = new Array(level.divisor).fill(0);
+            hintUsed = false;
+            attempts = 0;
+
+            document.getElementById('levelNum').textContent = levelIndex + 1;
+            document.getElementById('score').textContent = score;
+            document.getElementById('dividend').textContent = level.dividend;
+            document.getElementById('divisor').textContent = level.divisor;
+            document.getElementById('remainingSlices').textContent = slicesRemaining;
+            document.getElementById('progressBar').style.width = `${(levelIndex / levels.length) * 100}%`;
+            document.getElementById('hintBox').classList.remove('show');
+            document.getElementById('checkBtn').disabled = true;
+            document.getElementById('hintBtn').disabled = false;
+            document.getElementById('feedback').classList.remove('show', 'correct', 'wrong');
+            document.getElementById('instructions').textContent = 
+                `Level ${levelIndex + 1}: Click a friend to pull a slice from the pizza! Share ${level.dividend} slices among ${level.divisor} friends equally.`;
+
+            document.getElementById('levelModal').classList.remove('active');
+            document.getElementById('victoryModal').classList.remove('active');
+
+            renderRealPizza(level.dividend);
+            renderFriends(level);
+            updateCheckButton();
+        }
+
+        // ===== RENDER REAL PIZZA SVG =====
+        function renderRealPizza(totalSlices) {
+            const svg = document.getElementById('pizzaSvg');
+            svg.innerHTML = '';
+
+            const cx = 140, cy = 140, r = 115; // Slightly smaller to fit the board
+            
+            // Wooden Board
+            const board = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            board.setAttribute('cx', cx);
+            board.setAttribute('cy', cy);
+            board.setAttribute('r', 135);
+            board.setAttribute('fill', '#D4A373');
+            board.setAttribute('stroke', '#A67B5B');
+            board.setAttribute('stroke-width', '6');
+            
+            // Board handle
+            const handle = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            handle.setAttribute('d', `M ${cx+125} ${cy-15} L ${cx+170} ${cy-10} A 10 10 0 0 1 ${cx+175} ${cy} A 10 10 0 0 1 ${cx+170} ${cy+10} L ${cx+125} ${cy+15} Z`);
+            handle.setAttribute('fill', '#D4A373');
+            handle.setAttribute('stroke', '#A67B5B');
+            handle.setAttribute('stroke-width', '6');
+            
+            svg.appendChild(handle);
+            svg.appendChild(board);
+
+            const sliceAngle = (2 * Math.PI) / totalSlices;
+
+            for (let i = 0; i < totalSlices; i++) {
+                const startAngle = i * sliceAngle - Math.PI / 2;
+                const endAngle = (i + 1) * sliceAngle - Math.PI / 2;
+
+                const x1 = cx + r * Math.cos(startAngle);
+                const y1 = cy + r * Math.sin(startAngle);
+                const x2 = cx + r * Math.cos(endAngle);
+                const y2 = cy + r * Math.sin(endAngle);
+
+                const innerR = 10;
+                const ix1 = cx + innerR * Math.cos(startAngle);
+                const iy1 = cy + innerR * Math.sin(startAngle);
+                const ix2 = cx + innerR * Math.cos(endAngle);
+                const iy2 = cy + innerR * Math.sin(endAngle);
+
+                const pathData = `M ${ix1} ${iy1} L ${x1} ${y1} A ${r} ${r} 0 0 1 ${x2} ${y2} L ${ix2} ${iy2} A ${innerR} ${innerR} 0 0 0 ${ix1} ${iy1} Z`;
+                
+                // Melted cheese curve (wavy inner crust)
+                const cheesePath = `M ${cx + (r-15)*Math.cos(startAngle)} ${cy + (r-15)*Math.sin(startAngle)} Q ${cx + (r-5)*Math.cos(startAngle + sliceAngle/2)} ${cy + (r-5)*Math.sin(startAngle + sliceAngle/2)} ${cx + (r-15)*Math.cos(endAngle)} ${cy + (r-15)*Math.sin(endAngle)} L ${ix2} ${iy2} A ${innerR} ${innerR} 0 0 0 ${ix1} ${iy1} Z`;
+
+                const crustPath = `M ${x1} ${y1} A ${r} ${r} 0 0 1 ${x2} ${y2}`;
+
+                const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                g.classList.add('pizza-slice-svg');
+                g.id = `slice-${i}`;
+                g.dataset.index = i;
+                g.style.touchAction = 'none'; // Prevent scroll on drag
+                g.style.cursor = 'grab';
+
+                // Rich Toppings
+                let toppingsHTML = '';
+                const numToppings = 2 + Math.floor(Math.random() * 3);
+                for (let p = 0; p < numToppings; p++) {
+                    const pepR = 30 + Math.random() * (r - 60);
+                    const pepAngle = startAngle + Math.random() * sliceAngle * 0.7 + sliceAngle * 0.15;
+                    const pex = cx + pepR * Math.cos(pepAngle);
+                    const pey = cy + pepR * Math.sin(pepAngle);
+                    
+                    const type = Math.random();
+                    if (type < 0.5) {
+                        // Pepperoni
+                        toppingsHTML += `<circle cx="${pex}" cy="${pey}" r="8" fill="#D32F2F" stroke="#B71C1C" stroke-width="1"/>`;
+                        toppingsHTML += `<circle cx="${pex-2}" cy="${pey-2}" r="2" fill="#E57373" opacity="0.5"/>`; // highlight
+                    } else if (type < 0.75) {
+                        // Green Pepper
+                        toppingsHTML += `<path d="M ${pex-5} ${pey} Q ${pex} ${pey-5} ${pex+5} ${pey} Q ${pex} ${pey+5} ${pex-5} ${pey}" fill="none" stroke="#388E3C" stroke-width="3" stroke-linecap="round"/>`;
+                    } else {
+                        // Olive
+                        toppingsHTML += `<circle cx="${pex}" cy="${pey}" r="4" fill="none" stroke="#212121" stroke-width="3"/>`;
+                    }
+                }
+
+                // Inner crust shading
+                const crustShade = `M ${x1} ${y1} A ${r} ${r} 0 0 1 ${x2} ${y2} L ${cx + (r-8)*Math.cos(endAngle)} ${cy + (r-8)*Math.sin(endAngle)} A ${r-8} ${r-8} 0 0 0 ${cx + (r-8)*Math.cos(startAngle)} ${cy + (r-8)*Math.sin(startAngle)} Z`;
+
+                g.innerHTML = `
+                    <path d="${pathData}" fill="#FBC02D" stroke="#F57F17" stroke-width="1"/>
+                    <path d="${cheesePath}" fill="#FFF59D" />
+                    <path d="${crustShade}" fill="#E65100" opacity="0.4"/>
+                    <path d="${crustPath}" fill="none" stroke="#E65100" stroke-width="16" stroke-linecap="round"/>
+                    ${toppingsHTML}
+                `;
+
+                g.addEventListener('pointerdown', startDragSlice);
+                svg.appendChild(g);
+            }
+        }
+
+        // ===== RENDER FRIENDS =====
+        function renderFriends(level) {
+            const container = document.getElementById('friendsContainer');
+            container.innerHTML = '';
+
+            const centerX = window.innerWidth / 2;
+            const centerY = (window.innerHeight - 70) / 2;
+            const radius = Math.min(window.innerWidth, window.innerHeight) * 0.34;
+
+            level.friends.forEach((friendData, index) => {
+                const angle = (index / level.divisor) * 2 * Math.PI - Math.PI / 2;
+                const x = centerX + radius * Math.cos(angle);
+                const y = centerY + radius * Math.sin(angle);
+
+                const friend = document.createElement('div');
+                friend.className = 'friend';
+                friend.style.left = `${x}px`;
+                friend.style.top = `${y}px`;
+                friend.style.transform = 'translate(-50%, -50%)';
+                friend.dataset.index = index;
+
+                const themeClass = `theme-${friendData.skin}`;
+                const animDelay = `${index * 0.2}s`;
+                const hairHTML = getHairHTML(friendData.hair);
+
+                friend.innerHTML = `
+                    <div class="click-hint">Drop a slice here!</div>
+                    <div class="friend-char ${themeClass}" style="animation-delay: ${animDelay}">
+                        <div class="char-head">
+                            ${hairHTML}
+                            <div class="char-face">
+                                <div class="eyebrow left" id="eyebrow-l-${index}" style="animation-delay: ${animDelay}"></div>
+                                <div class="eyebrow right" id="eyebrow-r-${index}" style="animation-delay: ${animDelay}"></div>
+                                <div class="eye left" style="animation-delay: ${animDelay}"></div>
+                                <div class="eye right" style="animation-delay: ${animDelay}"></div>
+                                <div class="blush left" id="blush-l-${index}"></div>
+                                <div class="blush right" id="blush-r-${index}"></div>
+                                <div class="mouth mouth-smile" id="mouth-${index}"></div>
+                            </div>
+                        </div>
+                        <div class="char-body">
+                            <div class="arm left" id="arm-l-${index}"><div class="hand"></div></div>
+                            <div class="arm right" id="arm-r-${index}"><div class="hand"></div></div>
+                        </div>
+                        <div class="legs">
+                            <div class="leg"></div>
+                            <div class="leg"></div>
+                        </div>
+                    </div>
+                    <div class="friend-plate" id="plate-${index}">
+                        <div class="plate-slices" id="plate-slices-${index}"></div>
+                        <div class="plate-count" id="count-${index}">0</div>
+                    </div>
+                    <div class="friend-name">${friendData.name}</div>
+                `;
+
+                container.appendChild(friend);
+            });
+        }
+
+        function getHairHTML(style) {
+            switch(style) {
+                case 'spiky': return '<div class="hair hair-spiky"></div>';
+                case 'bob': return '<div class="hair hair-bob"></div>';
+                case 'curly': return '<div class="hair hair-curly"><div class="mid"></div></div>';
+                case 'ponytail': return '<div class="hair hair-ponytail"></div>';
+                case 'bangs': return '<div class="hair hair-bangs"></div>';
+                case 'afro': return '<div class="hair hair-afro"></div>';
+                case 'bun': return '<div class="hair hair-bun"></div>';
+                default: return '<div class="hair hair-spiky"></div>';
+            }
+        }
+
+        // ===== DRAG AND DROP GAMEPLAY =====
+        let draggedSlice = null;
+        let dragGhost = null;
+
+        function startDragSlice(e) {
+            if (slicesRemaining <= 0) return;
+            const sliceEl = e.currentTarget;
+            if (sliceEl.classList.contains('taken')) return;
+            
+            draggedSlice = sliceEl;
+            
+            // Create ghost for dragging
+            dragGhost = document.createElement('div');
+            dragGhost.className = 'flying-slice-real dragging';
+            dragGhost.style.pointerEvents = 'none'; // Critical for detecting drop targets underneath
+            dragGhost.innerHTML = `
+                <svg viewBox="0 0 280 280">
+                    <g transform="translate(0,0)">${sliceEl.innerHTML}</g>
+                </svg>
+            `;
+            document.body.appendChild(dragGhost);
+            
+            updateDragGhostPosition(e);
+            
+            sliceEl.style.opacity = '0.3'; // Dim original to show it's being moved
+            
+            document.addEventListener('pointermove', dragSliceMove);
+            document.addEventListener('pointerup', endDragSlice);
+            
+            AudioSystem.play('click');
+        }
+
+        function updateDragGhostPosition(e) {
+            if (!dragGhost) return;
+            // Center the SVG slice under the cursor
+            dragGhost.style.left = `${e.clientX - 140}px`;
+            dragGhost.style.top = `${e.clientY - 140}px`;
+            dragGhost.style.transform = 'scale(0.85) rotate(10deg)';
+        }
+
+        function dragSliceMove(e) {
+            updateDragGhostPosition(e);
+        }
+
+        function endDragSlice(e) {
+            document.removeEventListener('pointermove', dragSliceMove);
+            document.removeEventListener('pointerup', endDragSlice);
+            
+            if (!dragGhost || !draggedSlice) return;
+
+            // Check collision with friends
+            const friends = document.querySelectorAll('.friend');
+            let droppedFriendIndex = -1;
+            
+            friends.forEach(friend => {
+                const rect = friend.getBoundingClientRect();
+                // Generous drop zone (add 30px padding)
+                if (e.clientX >= rect.left - 30 && e.clientX <= rect.right + 30 &&
+                    e.clientY >= rect.top - 30 && e.clientY <= rect.bottom + 30) {
+                    droppedFriendIndex = parseInt(friend.dataset.index);
+                }
+            });
+
+            if (droppedFriendIndex !== -1) {
+                // Success drop
+                processSliceDrop(droppedFriendIndex);
+            } else {
+                // Snap back (fail)
+                draggedSlice.style.opacity = '1';
+                dragGhost.style.transition = 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+                
+                // Animate back to original pizza center
+                const pizzaRect = document.getElementById('pizzaSvg').getBoundingClientRect();
+                dragGhost.style.left = `${pizzaRect.left}px`;
+                dragGhost.style.top = `${pizzaRect.top}px`;
+                dragGhost.style.transform = 'scale(1) rotate(0deg)';
+                
+                setTimeout(() => {
+                    if(dragGhost) {
+                        dragGhost.remove();
+                        dragGhost = null;
+                    }
+                    draggedSlice = null;
+                }, 300);
+            }
+        }
+
+        function processSliceDrop(friendIndex) {
+            const friend = document.querySelectorAll('.friend')[friendIndex];
+            const targetRect = friend.getBoundingClientRect();
+            
+            // Finish animation into plate
+            dragGhost.style.transition = 'all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55)';
+            dragGhost.style.left = `${targetRect.left + targetRect.width/2 - 140}px`;
+            dragGhost.style.top = `${targetRect.top + targetRect.height/2 - 140}px`;
+            dragGhost.style.transform = 'scale(0.2) rotate(360deg)';
+            dragGhost.style.opacity = '0';
+            
+            draggedSlice.classList.add('taken');
+            draggedSlice.style.opacity = '0'; // fully hide original
+            
+            // State updates
+            friendSlices[friendIndex]++;
+            slicesRemaining--;
+            
+            setFriendExpression(friendIndex, 'excited');
+            friend.classList.add('jumping');
+            
+            setTimeout(() => {
+                friend.classList.remove('jumping');
+                setFriendExpression(friendIndex, 'happy');
+                if (dragGhost) {
+                    dragGhost.remove();
+                    dragGhost = null;
+                }
+                draggedSlice = null;
+                updatePlate(friendIndex);
+            }, 400);
+
+            document.getElementById('remainingSlices').textContent = slicesRemaining;
+            updateCheckButton();
+        }
+
+        function updatePlate(friendIndex) {
+            const plateSlices = document.getElementById(`plate-slices-${friendIndex}`);
+            const count = friendSlices[friendIndex];
+
+            plateSlices.innerHTML = '';
+            for (let i = 0; i < count; i++) {
+                const mini = document.createElement('div');
+                mini.className = 'mini-slice';
+                // Mini SVG slice
+                mini.innerHTML = `
+                    <svg viewBox="0 0 280 280">
+                        <g transform="translate(140,140)">
+                            <path d="M -10 -10 L -50 -80 A 90 90 0 0 1 50 -80 L 10 -10 A 15 15 0 0 0 -10 -10 Z" 
+                                  fill="#FFD54F" stroke="#D2691E" stroke-width="2"/>
+                            <path d="M -50 -80 A 90 90 0 0 1 50 -80" 
+                                  fill="none" stroke="#C4621E" stroke-width="6" stroke-linecap="round"/>
+                            <circle cx="-20" cy="-50" r="7" fill="#E53935" opacity="0.85"/>
+                            <circle cx="15" cy="-55" r="6" fill="#E53935" opacity="0.85"/>
+                        </g>
+                    </svg>
+                `;
+                mini.style.animationDelay = `${i * 0.05}s`;
+                plateSlices.appendChild(mini);
+            }
+
+            document.getElementById(`count-${friendIndex}`).textContent = count;
+        }
+
+        function setFriendExpression(index, expression) {
+            const mouth = document.getElementById(`mouth-${index}`);
+            const browL = document.getElementById(`eyebrow-l-${index}`);
+            const browR = document.getElementById(`eyebrow-r-${index}`);
+            const blushL = document.getElementById(`blush-l-${index}`);
+            const blushR = document.getElementById(`blush-r-${index}`);
+            const armL = document.getElementById(`arm-l-${index}`);
+            const armR = document.getElementById(`arm-r-${index}`);
+
+            mouth.className = 'mouth';
+            browL.className = 'eyebrow left';
+            browR.className = 'eyebrow right';
+            blushL.classList.remove('show');
+            blushR.classList.remove('show');
+            armL.classList.remove('wave-left');
+            armR.classList.remove('wave-right');
+
+            switch(expression) {
+                case 'happy':
+                    mouth.classList.add('mouth-big-smile');
+                    browL.classList.add('happy');
+                    browR.classList.add('happy');
+                    blushL.classList.add('show');
+                    blushR.classList.add('show');
+                    break;
+                case 'excited':
+                    mouth.classList.add('mouth-o');
+                    browL.classList.add('surprised');
+                    browR.classList.add('surprised');
+                    armL.classList.add('wave-left');
+                    armR.classList.add('wave-right');
+                    break;
+                case 'sad':
+                    mouth.classList.add('mouth-sad');
+                    browL.classList.add('sad');
+                    browR.classList.add('sad');
+                    break;
+                case 'eating':
+                    mouth.classList.add('mouth-eating');
+                    break;
+                case 'neutral':
+                    mouth.classList.add('mouth-smile');
+                    break;
+            }
+        }
+
+        function updateCheckButton() {
+            const btn = document.getElementById('checkBtn');
+            btn.disabled = slicesRemaining !== 0;
+        }
+
+        function resetLevel() {
+            AudioSystem.play('click');
+            loadLevel(currentLevel);
+            showFeedback('Level reset! Try again.', 'correct');
+        }
+
+        function showHint() {
+            AudioSystem.play('click');
+            if (hintUsed) return;
+            const level = levels[currentLevel];
+            const answer = level.dividend / level.divisor;
+            document.getElementById('hintBox').textContent = 
+                `Each friend should get exactly ${answer} slices. ${level.dividend} ÷ ${level.divisor} = ${answer}`;
+            document.getElementById('hintBox').classList.add('show');
+            hintUsed = true;
+            score = Math.max(0, score - 5);
+            document.getElementById('score').textContent = score;
+        }
+
+        // ===== VALIDATION =====
+        function checkAnswer() {
+            attempts++;
+            const level = levels[currentLevel];
+            const expected = level.dividend / level.divisor;
+            const allEqual = friendSlices.every(s => s === expected);
+            const totalDistributed = friendSlices.reduce((a, b) => a + b, 0);
+
+            if (allEqual && totalDistributed === level.dividend) {
+                handleCorrect();
+            } else {
+                handleWrong(expected);
+            }
+        }
+
+        function handleCorrect() {
+            AudioSystem.play('correct');
+            const level = levels[currentLevel];
+            const answer = level.dividend / level.divisor;
+            AudioSystem.speak(`Correct! ${level.dividend} divided by ${level.divisor} equals ${answer}`);
+            const basePoints = 100;
+            const attemptBonus = Math.max(0, 50 - (attempts - 1) * 10);
+            const hintPenalty = hintUsed ? 20 : 0;
+            const levelPoints = basePoints + attemptBonus - hintPenalty;
+            score += levelPoints;
+
+            // Store level result for summary
+            levelScores.push({
+                level: currentLevel + 1,
+                dividend: level.dividend,
+                divisor: level.divisor,
+                answer: level.dividend / level.divisor,
+                points: levelPoints
+            });
+
+            document.getElementById('score').textContent = score;
+            showFeedback(`Correct! ${level.dividend} ÷ ${level.divisor} = ${level.dividend / level.divisor}`, 'correct');
+
+            document.querySelectorAll('.friend').forEach((f, i) => {
+                f.classList.add('celebrating');
+                setFriendExpression(i, 'happy');
+            });
+
+            spawnConfetti();
+
+            setTimeout(() => {
+                if (currentLevel < levels.length - 1) {
+                    showLevelComplete(levelPoints);
+                } else {
+                    showVictory();
+                }
+            }, 2000);
+        }
+
+        function handleWrong(expected) {
+            AudioSystem.play('wrong');
+            AudioSystem.speak("Not equal yet! Everyone needs the same amount.");
+            showFeedback('Not equal yet! Everyone needs the same amount.', 'wrong');
+
+            document.querySelectorAll('.friend').forEach((f, i) => {
+                setFriendExpression(i, 'sad');
+                f.classList.add('sad-shake');
+                setTimeout(() => {
+                    f.classList.remove('sad-shake');
+                    setFriendExpression(i, 'neutral');
+                }, 800);
+            });
+
+            if (attempts >= 2 && !hintUsed) {
+                setTimeout(() => {
+                    document.getElementById('hintBox').textContent = 
+                        `Hint: Every friend needs the SAME number. Try giving each friend ${expected} slices.`;
+                    document.getElementById('hintBox').classList.add('show');
+                }, 1000);
+            }
+        }
+
+        function showFeedback(text, type) {
+            const fb = document.getElementById('feedback');
+            fb.textContent = text;
+            fb.className = `feedback-message show ${type}`;
+            setTimeout(() => fb.classList.remove('show'), 2500);
+        }
+
+        // ===== MODALS =====
+        function showLevelComplete(points) {
+            document.getElementById('modalIcon').textContent = '🎉';
+            document.getElementById('modalTitle').textContent = `Level ${currentLevel + 1} Complete!`;
+            document.getElementById('modalText').innerHTML = 
+                `You earned <strong>${points}</strong> points!<br>${levels[currentLevel].dividend} ÷ ${levels[currentLevel].divisor} = ${levels[currentLevel].dividend / levels[currentLevel].divisor}`;
+            document.getElementById('modalBtn').textContent = currentLevel < levels.length - 1 ? 'Next Level' : 'See Results';
+            document.getElementById('levelModal').classList.add('active');
+        }
+
+        function nextLevel() {
+            AudioSystem.play('click');
+            document.querySelectorAll('.friend').forEach(f => f.classList.remove('celebrating'));
+            loadLevel(currentLevel + 1);
+        }
+
+        function showVictory() {
+            // Build summary
+            const summaryContainer = document.getElementById('levelSummary');
+            let summaryHTML = '<h3>📋 Division Summary</h3>';
+
+            levelScores.forEach(ls => {
+                summaryHTML += `
+                    <div class="summary-row">
+                        <span class="problem">Level ${ls.level}: ${ls.dividend} ÷ ${ls.divisor}</span>
+                        <span class="answer">= ${ls.answer}</span>
+                        <span class="pts">+${ls.pts} pts</span>
+                    </div>
+                `;
+            });
+
+            summaryContainer.innerHTML = summaryHTML;
+            document.getElementById('summaryTotal').textContent = `Final Score: ${score}`;
+            document.getElementById('victoryModal').classList.add('active');
+            if (typeof GameMusic !== 'undefined') GameMusic.stop();
+            spawnConfetti(50);
+        }
+
+        function restartGame() {
+            AudioSystem.play('click');
+            document.querySelectorAll('.friend').forEach(f => f.classList.remove('celebrating'));
+            initGame();
+        }
+
+        // ===== CONFETTI =====
+        function spawnConfetti(amount = 30) {
+            const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD', '#FF6B35', '#FFB74D'];
+            for (let i = 0; i < amount; i++) {
+                setTimeout(() => {
+                    const conf = document.createElement('div');
+                    conf.className = 'confetti';
+                    conf.style.left = `${Math.random() * 100}vw`;
+                    conf.style.background = colors[Math.floor(Math.random() * colors.length)];
+                    conf.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+                    conf.style.animationDuration = `${2 + Math.random() * 2}s`;
+                    conf.style.width = `${8 + Math.random() * 8}px`;
+                    conf.style.height = conf.style.width;
+                    document.body.appendChild(conf);
+                    setTimeout(() => conf.remove(), 4000);
+                }, i * 50);
+            }
+        }
+
+        // ===== RESPONSIVE =====
+        window.addEventListener('resize', () => {
+            loadLevel(currentLevel);
+        });
+
+        // ===== START =====
+        // initGame() is now called by the start menu button
+    </script>
+</body>
+</html>

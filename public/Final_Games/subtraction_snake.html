@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Subtraction Snake 🐍</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@700;900&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    min-height: 100vh; font-family: 'Nunito', sans-serif; overflow: hidden;
+  }
+  #questionBar {
+    width: 620px; text-align: center; padding: 14px 20px; margin-bottom: 10px;
+    background: linear-gradient(135deg, #6c5ce7, #a29bfe); border-radius: 20px;
+    font-family: 'Fredoka One', cursive; font-size: 2.2rem; color: #fff;
+    box-shadow: 0 6px 25px rgba(108,92,231,.5); letter-spacing: 2px;
+    display: none; position: relative; z-index: 10;
+  }
+  #gameCanvas {
+    border-radius: 24px; display: block;
+    box-shadow: 0 0 40px rgba(108,92,231,.4), 0 0 80px rgba(0,0,0,.3);
+  }
+  #hud {
+    width: 620px; display: none; justify-content: space-between; padding: 10px 0;
+    font-family: 'Fredoka One', cursive; font-size: 1.2rem; color: #ffeaa7;
+  }
+  #startScreen {
+    position: absolute; text-align: center; color: #fff;
+  }
+  #startScreen h1 {
+    font-family: 'Fredoka One', cursive; font-size: 3.8rem;
+    background: linear-gradient(135deg, #00b894, #55efc4); -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent; margin-bottom: 10px;
+  }
+  #startScreen p { font-size: 1.3rem; color: #dfe6e9; margin-bottom: 30px; line-height: 1.6; }
+  #startBtn {
+    font-family: 'Fredoka One', cursive; font-size: 1.6rem; padding: 16px 50px;
+    border: none; border-radius: 50px; cursor: pointer; color: #fff;
+    background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+    box-shadow: 0 6px 20px rgba(108,92,231,.5); transition: transform .2s;
+  }
+  #startBtn:hover { transform: scale(1.08); }
+  #gameOver {
+    position: absolute; text-align: center; color: #fff; display: none;
+    font-family: 'Fredoka One', cursive;
+  }
+  #gameOver h2 { font-size: 3.5rem; color: #ff7675; margin-bottom: 10px; }
+  #gameOver p { font-size: 1.6rem; color: #ffeaa7; margin-bottom: 25px; }
+  #restartBtn {
+    font-family: 'Fredoka One', cursive; font-size: 1.4rem; padding: 14px 40px;
+    border: none; border-radius: 50px; cursor: pointer; color: #fff;
+    background: linear-gradient(135deg, #00b894, #55efc4);
+    box-shadow: 0 4px 15px rgba(0,184,148,.4); transition: transform .2s;
+  }
+  #restartBtn:hover { transform: scale(1.08); }
+</style>
+<script src="game-music.js"></script>
+</head>
+<body>
+
+<div id="startScreen">
+  <h1>🐍 Subtraction Snake</h1>
+  <p>Eat the correct answer to grow!<br>Wrong answers make you shrink!</p>
+  <button id="startBtn" onclick="startGame()">START GAME</button>
+</div>
+
+<div id="questionBar"></div>
+<canvas id="gameCanvas" width="600" height="450"></canvas>
+<div id="hud">
+  <span>⭐ Score: <span id="scoreVal">0</span></span>
+  <span>📏 Length: <span id="lenVal">5</span></span>
+  <span>🎯 Level: <span id="lvlVal">1</span></span>
+</div>
+
+<div id="gameOver">
+  <h2>Game Over!</h2>
+  <p>Score: <span id="finalScore">0</span></p>
+  <button id="restartBtn" onclick="startGame()">Play Again</button>
+</div>
+
+<script>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const W = canvas.width, H = canvas.height;
+
+let snake, dir, nextDir, foods, score, level, growTarget, isRunning, animationId, question, particles, floatingTexts, questionsCorrect, speed, bgBubbles;
+
+const COLORS = {
+  snakeHead: '#00b894',
+  snakeBody: '#55efc4',
+  correct: '#00b894',
+  wrong: '#ff7675',
+  gold: '#ffeaa7'
+};
+
+const FOOD_COLORS = ['#ff7675','#fdcb6e','#74b9ff','#a29bfe','#fd79a8','#00cec9','#e17055','#6c5ce7'];
+
+// --- Particles ---
+class Particle {
+  constructor(x,y,color) {
+    this.x=x; this.y=y; this.color=color;
+    const a=Math.random()*Math.PI*2;
+    const s=Math.random()*3+1;
+    this.vx=Math.cos(a)*s; this.vy=Math.sin(a)*s;
+    this.life=1; this.size=Math.random()*5+2;
+  }
+  update() { this.x+=this.vx; this.y+=this.vy; this.vy+=.05; this.life-=.025; this.size*=.97; return this.life>0; }
+  draw() {
+    ctx.save(); ctx.globalAlpha=this.life;
+    ctx.fillStyle=this.color; ctx.beginPath();
+    ctx.arc(this.x,this.y,this.size,0,Math.PI*2); ctx.fill(); ctx.restore();
+  }
+}
+
+class FloatText {
+  constructor(x,y,text,color) { this.x=x; this.y=y; this.text=text; this.color=color; this.life=1; }
+  update() { this.y-=1.2; this.life-=.018; return this.life>0; }
+  draw() {
+    ctx.save(); ctx.globalAlpha=this.life; ctx.font='bold 22px Fredoka One';
+    ctx.fillStyle=this.color; ctx.textAlign='center'; ctx.fillText(this.text,this.x,this.y); ctx.restore();
+  }
+}
+
+function spawnParticles(x,y,color,n=12) { for(let i=0;i<n;i++) particles.push(new Particle(x,y,color)); }
+
+function generateBgBubbles() {
+  bgBubbles = [];
+  for(let i=0; i<30; i++) {
+    bgBubbles.push({
+      x: Math.random() * W,
+      y: Math.random() * H,
+      r: Math.random() * 20 + 10,
+      opacity: Math.random() * 0.05 + 0.02,
+      color: ['#74b9ff', '#a29bfe', '#55efc4', '#ffeaa7'][Math.floor(Math.random() * 4)]
+    });
+  }
+}
+
+// --- Game Logic ---
+function generateQuestion() {
+  const lvl = level;
+  let a, b;
+  if(lvl<=2) { a=Math.floor(Math.random()*10)+5; b=Math.floor(Math.random()*a)+1; }
+  else if(lvl<=4) { a=Math.floor(Math.random()*20)+10; b=Math.floor(Math.random()*a)+1; }
+  else { a=Math.floor(Math.random()*40)+20; b=Math.floor(Math.random()*a)+1; }
+  question = { a, b, answer: a-b };
+  document.getElementById('questionBar').textContent = `${a} − ${b} = ?`;
+}
+
+function spawnFoods() {
+  foods = [];
+  const correct = question.answer;
+  const answers = new Set([correct]);
+  while(answers.size < 4) {
+    let wrong = correct + Math.floor(Math.random()*11)-5;
+    if(wrong < 0) wrong = Math.abs(wrong);
+    if(wrong === correct) continue;
+    answers.add(wrong);
+  }
+  const ansArr = [...answers].sort(() => Math.random()-.5);
+
+  ansArr.forEach((val,i) => {
+    let fx, fy, valid;
+    do {
+      valid = true;
+      fx = Math.floor(Math.random() * (W - 80)) + 40;
+      fy = Math.floor(Math.random() * (H - 80)) + 40;
+      
+      // Keep clear of snake
+      for(let s of snake) {
+        let dx = fx - s.x;
+        let dy = fy - s.y;
+        if(Math.sqrt(dx*dx + dy*dy) < 60) {
+          valid = false;
+          break;
+        }
+      }
+      // Keep clear of other foods
+      for(let f of foods) {
+        let dx = fx - f.x;
+        let dy = fy - f.y;
+        if(Math.sqrt(dx*dx + dy*dy) < 70) {
+          valid = false;
+          break;
+        }
+      }
+    } while(!valid);
+    
+    foods.push({
+      x: fx,
+      y: fy,
+      value: val,
+      pulse: Math.random() * Math.PI * 2,
+      color: FOOD_COLORS[i % FOOD_COLORS.length]
+    });
+  });
+}
+
+function startGame() {
+  document.getElementById('startScreen').style.display='none';
+  document.getElementById('gameOver').style.display='none';
+  document.getElementById('questionBar').style.display='block';
+  document.getElementById('hud').style.display='flex';
+
+  snake = []; dir = {x:1,y:0}; nextDir = {x:1,y:0};
+  score = 0; level = 1; growTarget = 5; questionsCorrect = 0; speed = 3;
+  particles = []; floatingTexts = [];
+  
+  const startX = W / 2, startY = H / 2;
+  const segmentSpacing = 16;
+  for(let i=0; i<5; i++) {
+    snake.push({ x: startX - i * segmentSpacing, y: startY });
+  }
+
+  generateBgBubbles();
+  generateQuestion();
+  spawnFoods();
+  updateHUD();
+
+  if (typeof GameMusic !== 'undefined') {
+    GameMusic.start({ track: 'edWelch', volume: 0.3, fadeInMs: 2000 });
+  }
+
+  if(animationId) cancelAnimationFrame(animationId);
+  isRunning = true;
+  gameTick();
+}
+
+function updateHUD() {
+  document.getElementById('scoreVal').textContent = score;
+  document.getElementById('lenVal').textContent = snake.length;
+  document.getElementById('lvlVal').textContent = level;
+}
+
+function gameTick() {
+  if (!isRunning) return;
+  tick();
+  animationId = requestAnimationFrame(gameTick);
+}
+
+function tick() {
+  dir = {...nextDir};
+  
+  // Smooth continuous movement
+  const oldHead = snake[0];
+  const head = {
+    x: oldHead.x + dir.x * speed,
+    y: oldHead.y + dir.y * speed
+  };
+
+  // Wrap around boundaries smoothly
+  if(head.x < 0) head.x += W;
+  if(head.x >= W) head.x -= W;
+  if(head.y < 0) head.y += H;
+  if(head.y >= H) head.y -= H;
+
+  // Move snake head
+  snake[0] = head;
+
+  // Move all other segments to follow the one in front
+  const segmentSpacing = 16;
+  for(let i = 1; i < snake.length; i++) {
+    let dx = snake[i-1].x - snake[i].x;
+    let dy = snake[i-1].y - snake[i].y;
+
+    if(dx > W / 2) dx -= W;
+    else if(dx < -W / 2) dx += W;
+
+    if(dy > H / 2) dy -= H;
+    else if(dy < -H / 2) dy += H;
+
+    let dist = Math.sqrt(dx*dx + dy*dy);
+    if(dist > segmentSpacing) {
+      snake[i].x = snake[i-1].x - (dx / dist) * segmentSpacing;
+      snake[i].y = snake[i-1].y - (dy / dist) * segmentSpacing;
+
+      if(snake[i].x < 0) snake[i].x += W;
+      if(snake[i].x >= W) snake[i].x -= W;
+      if(snake[i].y < 0) snake[i].y += H;
+      if(snake[i].y >= H) snake[i].y -= H;
+    }
+  }
+
+  // Self collision check (only check if snake is long enough)
+  for (let i = 12; i < snake.length; i++) {
+    let dx = head.x - snake[i].x;
+    let dy = head.y - snake[i].y;
+    if(dx > W / 2) dx -= W;
+    else if(dx < -W / 2) dx += W;
+    if(dy > H / 2) dy -= H;
+    else if(dy < -H / 2) dy += H;
+    
+    if (Math.sqrt(dx*dx + dy*dy) < 14) {
+      endGame();
+      return;
+    }
+  }
+
+  // Check food collision
+  for(let i=foods.length-1; i>=0; i--) {
+    const f = foods[i];
+    let dx = head.x - f.x;
+    let dy = head.y - f.y;
+    
+    if(dx > W / 2) dx -= W;
+    else if(dx < -W / 2) dx += W;
+    if(dy > H / 2) dy -= H;
+    else if(dy < -H / 2) dy += H;
+
+    let dist = Math.sqrt(dx*dx + dy*dy);
+    // Bigger hit box since dots are larger (approx 32px)
+    if(dist < 36) {
+      if(f.value === question.answer) {
+        // Correct answer!
+        score += 100 * level;
+        growTarget += 3;
+        questionsCorrect++;
+        spawnParticles(f.x, f.y, '#00b894', 20);
+        floatingTexts.push(new FloatText(f.x, f.y, `+${100*level}`, '#55efc4'));
+        
+        if(questionsCorrect % 5 === 0 && level < 5) {
+          level++;
+          speed = 3 + (level - 1) * 0.4;
+        }
+        generateQuestion();
+        spawnFoods();
+      } else {
+        // Wrong answer!
+        score = Math.max(0, score - 30);
+        growTarget = Math.max(3, growTarget - 2);
+        while(snake.length > growTarget) {
+          snake.pop();
+        }
+        spawnParticles(f.x, f.y, '#ff7675', 15);
+        floatingTexts.push(new FloatText(f.x, f.y, '−30', '#ff7675'));
+        foods.splice(i, 1);
+      }
+      break;
+    }
+  }
+
+  if (snake.length < growTarget) {
+    const tail = snake[snake.length - 1];
+    snake.push({ x: tail.x, y: tail.y });
+  }
+
+  updateHUD();
+
+  // Update effects
+  particles = particles.filter(p => p.update());
+  floatingTexts = floatingTexts.filter(t => t.update());
+  foods.forEach(f => f.pulse += .08);
+
+  draw();
+}
+
+function endGame() {
+  isRunning = false;
+  cancelAnimationFrame(animationId);
+  document.getElementById('questionBar').style.display='none';
+  document.getElementById('hud').style.display='none';
+  document.getElementById('finalScore').textContent = score;
+  document.getElementById('gameOver').style.display='block';
+  if (typeof GameMusic !== 'undefined') GameMusic.stop();
+}
+
+// --- Drawing ---
+function draw() {
+  // Gradient background
+  const grad = ctx.createLinearGradient(0,0,W,H);
+  grad.addColorStop(0,'#1a1a2e'); grad.addColorStop(.5,'#16213e'); grad.addColorStop(1,'#0f3460');
+  ctx.fillStyle = grad; ctx.fillRect(0,0,W,H);
+
+  // Soft floating background bubbles (removed grid patterns completely)
+  bgBubbles.forEach(b => {
+    ctx.save(); ctx.globalAlpha = b.opacity; ctx.fillStyle = b.color;
+    ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, Math.PI*2); ctx.fill(); ctx.restore();
+  });
+
+  // Draw foods (BIG, bouncy, numbered dots)
+  foods.forEach(f => {
+    const cx = f.x, cy = f.y;
+    const pulse = Math.sin(f.pulse)*4;
+    const r = 24 + pulse; // Super big dots for kids!
+
+    // Glow
+    ctx.save(); ctx.globalAlpha=.25; ctx.fillStyle=f.color;
+    ctx.beginPath(); ctx.arc(cx,cy,r+6,0,Math.PI*2); ctx.fill(); ctx.restore();
+
+    // Circle
+    ctx.fillStyle = f.color;
+    ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.fill();
+
+    // Highlight
+    ctx.fillStyle = 'rgba(255,255,255,0.35)';
+    ctx.beginPath(); ctx.arc(cx-4,cy-5,r*.4,0,Math.PI*2); ctx.fill();
+
+    // Large readable Number
+    ctx.font = 'bold 22px Fredoka One'; ctx.fillStyle='#fff';
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(f.value, cx, cy+1);
+  });
+
+  // Draw snake (extremely smooth and cute visuals)
+  for(let i=snake.length-1; i>=0; i--) {
+    const s = snake[i];
+    const cx = s.x, cy = s.y;
+    const ratio = i/snake.length;
+    const size = 18 - ratio * 10; // Tapering body
+
+    // Body color gradient
+    const g = Math.floor(184 + (236-184)*(1-ratio));
+    const bodyColor = i===0 ? '#00b894' : `rgb(85,${g},196)`;
+
+    // Glow behind
+    ctx.save(); ctx.globalAlpha=.15; ctx.fillStyle=bodyColor;
+    ctx.beginPath(); ctx.arc(cx,cy,size+4,0,Math.PI*2); ctx.fill(); ctx.restore();
+
+    // Segment
+    ctx.fillStyle = bodyColor;
+    ctx.beginPath(); ctx.arc(cx,cy,size,0,Math.PI*2); ctx.fill();
+
+    // Belly highlight
+    ctx.fillStyle = 'rgba(255,255,255,0.15)';
+    ctx.beginPath(); ctx.arc(cx-2,cy-2,size*.5,0,Math.PI*2); ctx.fill();
+
+    // Head details
+    if(i === 0) {
+      // Eyes
+      const ex1 = cx + dir.x*6 + dir.y*6, ey1 = cy + dir.y*6 - dir.x*6;
+      const ex2 = cx + dir.x*6 - dir.y*6, ey2 = cy + dir.y*6 + dir.x*6;
+      ctx.fillStyle='#fff';
+      ctx.beginPath(); ctx.arc(ex1,ey1,5,0,Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.arc(ex2,ey2,5,0,Math.PI*2); ctx.fill();
+      ctx.fillStyle='#2d3436';
+      ctx.beginPath(); ctx.arc(ex1+dir.x,ey1+dir.y,2.5,0,Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.arc(ex2+dir.x,ey2+dir.y,2.5,0,Math.PI*2); ctx.fill();
+
+      // Tongue (animated wiggling)
+      const wiggle = Math.sin(Date.now() / 80) * 3;
+      const tx = cx+dir.x*size, ty = cy+dir.y*size;
+      ctx.strokeStyle='#ff7675'; ctx.lineWidth=3; ctx.lineCap='round';
+      ctx.beginPath(); ctx.moveTo(tx,ty);
+      
+      const tLength = 12;
+      const tEndX = tx + dir.x * tLength;
+      const tEndY = ty + dir.y * tLength;
+      const ox = -dir.y * wiggle;
+      const oy = dir.x * wiggle;
+      
+      ctx.lineTo(tEndX + ox, tEndY + oy); ctx.stroke();
+      
+      // Forked tip
+      ctx.beginPath();
+      ctx.moveTo(tEndX + ox, tEndY + oy);
+      ctx.lineTo(tEndX + dir.x*4 + ox + dir.y*3, tEndY + dir.y*4 + oy - dir.x*3);
+      ctx.moveTo(tEndX + ox, tEndY + oy);
+      ctx.lineTo(tEndX + dir.x*4 + ox - dir.y*3, tEndY + dir.y*4 + oy + dir.x*3);
+      ctx.stroke();
+    }
+    
+    // Rattle tail on last segment
+    if(i === snake.length - 1 && snake.length > 2) {
+      ctx.fillStyle = '#ffeaa7';
+      ctx.beginPath();
+      ctx.arc(cx - dir.x * 4, cy - dir.y * 4, size * 0.7, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  // Particles & floating text
+  particles.forEach(p => p.draw());
+  floatingTexts.forEach(t => t.draw());
+}
+
+// --- Controls ---
+document.addEventListener('keydown', e => {
+  if(!isRunning) return;
+  switch(e.key) {
+    case 'ArrowUp':    if(dir.y!==1)  nextDir={x:0,y:-1}; break;
+    case 'ArrowDown':  if(dir.y!==-1) nextDir={x:0,y:1};  break;
+    case 'ArrowLeft':  if(dir.x!==1)  nextDir={x:-1,y:0}; break;
+    case 'ArrowRight': if(dir.x!==-1) nextDir={x:1,y:0};  break;
+  }
+  e.preventDefault();
+});
+
+// Touch controls for mobile
+let touchStartX=0, touchStartY=0;
+canvas.addEventListener('touchstart', e => { touchStartX=e.touches[0].clientX; touchStartY=e.touches[0].clientY; });
+canvas.addEventListener('touchend', e => {
+  const dx=e.changedTouches[0].clientX-touchStartX, dy=e.changedTouches[0].clientY-touchStartY;
+  if(Math.abs(dx)>Math.abs(dy)) { if(dx>0&&dir.x!==-1) nextDir={x:1,y:0}; else if(dx<0&&dir.x!==1) nextDir={x:-1,y:0}; }
+  else { if(dy>0&&dir.y!==-1) nextDir={x:0,y:1}; else if(dy<0&&dir.y!==1) nextDir={x:0,y:-1}; }
+});
+</script>
+</body>
+</html>

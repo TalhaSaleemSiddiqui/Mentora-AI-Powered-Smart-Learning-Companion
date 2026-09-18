@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math Space Shooter</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #0a0a2e; overflow: hidden; font-family: 'Comic Sans MS', 'Chalkboard SE', 'Arial Rounded MT Bold', 'Helvetica Rounded', Arial, sans-serif; color: #fff; }
+        canvas { display: block; }
+
+        #problemBox {
+            position: absolute; top: 15px; left: 50%; transform: translateX(-50%);
+            text-align: center; pointer-events: none; z-index: 10;
+            background: rgba(0,0,0,0.4); padding: 8px 30px; border-radius: 15px;
+            border: 2px solid #00ffcc;
+        }
+        #problem {
+            font-size: 44px; font-weight: bold; color: #ffdd00;
+            text-shadow: 2px 2px 0px #ff6600;
+            letter-spacing: 2px;
+        }
+        #levelDisplay {
+            font-size: 18px; color: #ff66cc; margin-top: 2px; font-weight: bold;
+        }
+
+        #scoreBox {
+            position: absolute; top: 15px; left: 15px;
+            pointer-events: none; z-index: 10;
+            background: rgba(0,0,0,0.4); padding: 8px 18px; border-radius: 12px;
+            border: 2px solid #00ff88;
+        }
+        #score { font-size: 20px; color: #00ff88; font-weight: bold; }
+
+        #livesBox {
+            position: absolute; top: 15px; right: 15px;
+            pointer-events: none; z-index: 10;
+            background: rgba(0,0,0,0.4); padding: 8px 18px; border-radius: 12px;
+            border: 2px solid #ff4444;
+        }
+        #lives { font-size: 20px; color: #ff4444; font-weight: bold; }
+
+        #instructions {
+            position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%);
+            text-align: center; color: #aaa; font-size: 13px; pointer-events: none;
+            background: rgba(0,0,0,0.3); padding: 4px 15px; border-radius: 8px;
+        }
+
+        #gameOver {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            text-align: center; display: none; background: rgba(10,10,46,0.95); padding: 35px;
+            border: 3px solid #ff66cc; border-radius: 20px; box-shadow: 0 0 40px #ff66cc;
+            max-height: 80vh; overflow-y: auto; width: 90%; max-width: 450px; z-index: 50;
+        }
+        #gameOver h1 { color: #ff4444; font-size: 42px; margin-bottom: 10px; }
+        #gameOver .goodjob { color: #00ff88; font-size: 22px; margin-bottom: 15px; font-weight: bold; }
+        #gameOver #questionList {
+            text-align: left; margin: 15px 0; max-height: 200px; overflow-y: auto;
+            border: 1px solid #444; padding: 12px; border-radius: 10px; background: rgba(0,20,20,0.5);
+        }
+        #gameOver #questionList p { color: #ddd; font-size: 16px; margin: 5px 0; }
+        #gameOver #questionList p span { color: #00ffcc; font-weight: bold; }
+        #gameOver #finalScore { font-size: 24px; color: #ffdd00; margin: 10px 0; }
+        #gameOver button {
+            background: #ff66cc; color: #fff; border: none; padding: 14px 35px;
+            font-size: 22px; font-family: inherit; font-weight: bold;
+            cursor: pointer; margin-top: 15px; border-radius: 12px;
+            box-shadow: 0 0 15px #ff66cc;
+        }
+        #gameOver button:hover { background: #ff99dd; transform: scale(1.05); }
+
+        #startScreen {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            text-align: center; background: rgba(10,10,46,0.95); padding: 45px;
+            border: 3px solid #00ccff; border-radius: 20px; box-shadow: 0 0 50px #00ccff;
+            z-index: 50;
+        }
+        #startScreen h1 { color: #ffdd00; font-size: 52px; margin-bottom: 15px; text-shadow: 0 0 20px #ffdd00; }
+        #startScreen p { color: #fff; font-size: 20px; margin: 10px 0; line-height: 1.5; }
+        #startScreen button {
+            background: #ff66cc; color: #fff; border: none; padding: 18px 45px;
+            font-size: 26px; font-family: inherit; font-weight: bold;
+            cursor: pointer; margin-top: 25px; border-radius: 15px;
+            box-shadow: 0 0 25px #ff66cc;
+        }
+        #startScreen button:hover { transform: scale(1.1); background: #ff99dd; }
+
+        #levelComplete {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            text-align: center; display: none; background: rgba(10,10,46,0.95); padding: 40px;
+            border: 3px solid #00ff88; border-radius: 20px; box-shadow: 0 0 50px #00ff88;
+            z-index: 100;
+        }
+        #levelComplete h1 { color: #00ff88; font-size: 48px; margin-bottom: 10px; }
+        #levelComplete p { color: #ffdd00; font-size: 24px; margin: 8px 0; }
+        #levelComplete button {
+            background: #00ff88; color: #000; border: none; padding: 16px 40px;
+            font-size: 24px; font-family: inherit; font-weight: bold;
+            cursor: pointer; margin-top: 20px; border-radius: 12px;
+            box-shadow: 0 0 20px #00ff88;
+        }
+        #levelComplete button:hover { transform: scale(1.1); background: #ccffee; }
+    </style>
+
+    <script src="heartwarming-tts.js"></script>
+    <script src="game-music.js"></script>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+
+    <div id="problemBox">
+        <div id="problem">? + ? = ?</div>
+        <div id="levelDisplay">Level 1</div>
+    </div>
+
+    <div id="scoreBox">
+        <div id="score">SCORE: 0</div>
+    </div>
+
+    <div id="livesBox">
+        <div id="lives">LIVES: 5</div>
+    </div>
+
+    <div id="instructions">
+        ARROWS / WASD to Move • SPACE to Shoot • Find the RIGHT answer!
+    </div>
+
+    <div id="startScreen">
+        <h1>MATH BLASTER!</h1>
+        <p>🚀 Solve the math problem!</p>
+        <p>🔢 Find the ship with the RIGHT NUMBER!</p>
+        <p>💥 Shoot ONLY that ship!</p>
+        <p>🛡️ Dodge the colorful bullets!</p>
+        <button onclick="startGame()">START GAME!</button>
+    </div>
+
+    <div id="levelComplete">
+        <h1>🎉 LEVEL COMPLETE! 🎉</h1>
+        <p id="levelCompleteText">Great job!</p>
+        <button onclick="nextLevel()">NEXT LEVEL!</button>
+    </div>
+
+    <div id="gameOver">
+        <h1>GAME OVER</h1>
+        <div class="goodjob">🌟 Good Job! You solved these: 🌟</div>
+        <div id="questionList"></div>
+        <p id="finalScore">Final Score: 0</p>
+        <button onclick="restartGame()">PLAY AGAIN!</button>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+
+        let gameRunning = false;
+        let score = 0;
+        let lives = 5;
+        let problem = { a: 0, b: 0, answer: 0 };
+        let correctEnemy = null;
+        let solvedQuestions = [];
+        let level = 1;
+        let correctThisLevel = 0;
+        let levelTargets = [3, 5, 2, 2];
+        let levelPaused = false;
+
+        const keys = {};
+        window.addEventListener('keydown', (e) => {
+            keys[e.code] = true;
+            if (e.code === 'Space') e.preventDefault();
+        });
+        window.addEventListener('keyup', (e) => keys[e.code] = false);
+
+        function rand(min, max) { return Math.random() * (max - min) + min; }
+        function randInt(min, max) { return Math.floor(rand(min, max + 1)); }
+
+        // Simple white stars, fewer of them
+        class Star {
+            constructor() { this.reset(); this.y = rand(0, canvas.height); }
+            reset() {
+                this.x = rand(0, canvas.width); this.y = -5;
+                this.size = rand(0.5, 2);
+                this.speed = this.size * 0.5;
+                this.alpha = rand(0.3, 0.8);
+            }
+            update() { this.y += this.speed; if (this.y > canvas.height) this.reset(); }
+            draw() {
+                ctx.fillStyle = `rgba(255, 255, 255, ${this.alpha})`;
+                ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill();
+            }
+        }
+
+        class Particle {
+            constructor(x, y, color, speed, size) {
+                this.x = x; this.y = y; this.color = color;
+                this.angle = rand(0, Math.PI * 2);
+                this.speed = speed || rand(2, 6);
+                this.vx = Math.cos(this.angle) * this.speed;
+                this.vy = Math.sin(this.angle) * this.speed;
+                this.size = size || rand(2, 5);
+                this.life = 1; this.decay = rand(0.02, 0.04);
+            }
+            update() {
+                this.x += this.vx; this.y += this.vy;
+                this.life -= this.decay;
+                this.vx *= 0.95; this.vy *= 0.95;
+            }
+            draw() {
+                ctx.globalAlpha = Math.max(0, this.life);
+                ctx.fillStyle = this.color;
+                ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill();
+                ctx.globalAlpha = 1;
+            }
+        }
+
+        class FloatingText {
+            constructor(x, y, text, color) {
+                this.x = x; this.y = y; this.text = text; this.color = color;
+                this.life = 1; this.vy = -2;
+            }
+            update() {
+                this.y += this.vy;
+                this.life -= 0.02;
+            }
+            draw() {
+                ctx.globalAlpha = Math.max(0, this.life);
+                ctx.fillStyle = this.color;
+                ctx.font = 'bold 28px Arial, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(this.text, this.x, this.y);
+                ctx.globalAlpha = 1;
+            }
+            isDead() { return this.life <= 0; }
+        }
+
+        class Blast {
+            constructor(x, y, color) {
+                this.x = x; this.y = y; this.color = color;
+                this.radius = 5; this.life = 1;
+                this.particles = [];
+                for (let i = 0; i < 15; i++) {
+                    this.particles.push(new Particle(x, y, color, rand(3, 8), rand(3, 6)));
+                }
+            }
+            update() {
+                this.radius += 3; this.life -= 0.04;
+                this.particles.forEach(p => p.update());
+            }
+            draw() {
+                ctx.globalAlpha = Math.max(0, this.life);
+                ctx.strokeStyle = this.color; ctx.lineWidth = 3;
+                ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2); ctx.stroke();
+                ctx.globalAlpha = 1;
+                this.particles.forEach(p => p.draw());
+            }
+            isDead() { return this.life <= 0; }
+        }
+
+        class PlayerBullet {
+            constructor(x, y) {
+                this.x = x; this.y = y; this.speed = 14; this.radius = 7; this.color = '#00ccff';
+            }
+            update() { this.y -= this.speed; }
+            draw() {
+                ctx.fillStyle = this.color;
+                ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2); ctx.fill();
+                ctx.strokeStyle = '#fff'; ctx.lineWidth = 2;
+                ctx.stroke();
+                // Small trail
+                ctx.fillStyle = 'rgba(0, 204, 255, 0.3)';
+                ctx.beginPath(); ctx.arc(this.x, this.y + 12, this.radius * 0.7, 0, Math.PI * 2); ctx.fill();
+            }
+            isOffScreen() { return this.y < -50; }
+        }
+
+        class EnemyBullet {
+            constructor(x, y, type = 'bullet') {
+                this.x = x; this.y = y; this.type = type;
+                this.speed = type === 'laser' ? 4.5 : rand(2.5, 3.5);
+                this.radius = type === 'laser' ? 8 : 10;
+                this.color = type === 'laser' ? '#ff66cc' : '#ff5555';
+            }
+            update() { this.y += this.speed; }
+            draw() {
+                ctx.fillStyle = this.color;
+                ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2); ctx.fill();
+                ctx.strokeStyle = '#fff'; ctx.lineWidth = 2;
+                ctx.stroke();
+                // Glow
+                ctx.fillStyle = this.type === 'laser' ? 'rgba(255, 102, 204, 0.25)' : 'rgba(255, 85, 85, 0.25)';
+                ctx.beginPath(); ctx.arc(this.x, this.y, this.radius + 4, 0, Math.PI * 2); ctx.fill();
+            }
+            isOffScreen() { return this.y > canvas.height + 50; }
+        }
+
+        class Player {
+            constructor() {
+                this.x = canvas.width / 2; this.y = canvas.height - 120;
+                this.width = 45; this.height = 55; this.speed = 6;
+                this.cooldown = 0; this.invulnerable = 0;
+            }
+            update() {
+                if (keys['ArrowLeft'] || keys['KeyA']) this.x -= this.speed;
+                if (keys['ArrowRight'] || keys['KeyD']) this.x += this.speed;
+                if (keys['ArrowUp'] || keys['KeyW']) this.y -= this.speed;
+                if (keys['ArrowDown'] || keys['KeyS']) this.y += this.speed;
+                this.x = Math.max(this.width, Math.min(canvas.width - this.width, this.x));
+                this.y = Math.max(this.height, Math.min(canvas.height - this.height, this.y));
+                if (this.cooldown > 0) this.cooldown--;
+                if (this.invulnerable > 0) this.invulnerable--;
+                if ((keys['Space'] || keys['Enter']) && this.cooldown === 0) {
+                    playerBullets.push(new PlayerBullet(this.x, this.y - 25));
+                    this.cooldown = 14;
+                }
+            }
+            draw() {
+                ctx.save(); ctx.translate(this.x, this.y);
+                if (this.invulnerable > 0 && Math.floor(Date.now() / 100) % 2 === 0) ctx.globalAlpha = 0.5;
+
+                const flameHeight = rand(18, 35);
+                ctx.fillStyle = '#ff8800';
+                ctx.beginPath(); ctx.moveTo(-10, 25); ctx.lineTo(0, 25 + flameHeight); ctx.lineTo(10, 25); ctx.fill();
+                ctx.fillStyle = '#ffdd00';
+                ctx.beginPath(); ctx.moveTo(-5, 25); ctx.lineTo(0, 25 + flameHeight * 0.6); ctx.lineTo(5, 25); ctx.fill();
+
+                ctx.fillStyle = '#4488ff';
+                ctx.beginPath();
+                ctx.moveTo(0, -28);
+                ctx.lineTo(-22, 25);
+                ctx.lineTo(-10, 18);
+                ctx.lineTo(0, 28);
+                ctx.lineTo(10, 18);
+                ctx.lineTo(22, 25);
+                ctx.closePath();
+                ctx.fill();
+
+                ctx.fillStyle = '#00ffcc';
+                ctx.beginPath(); ctx.arc(0, -5, 9, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = '#fff';
+                ctx.beginPath(); ctx.arc(0, -7, 4, 0, Math.PI * 2); ctx.fill();
+
+                ctx.strokeStyle = '#88ccff'; ctx.lineWidth = 2;
+                ctx.stroke();
+                ctx.restore();
+            }
+            getBounds() { return { x: this.x - 22, y: this.y - 28, w: 45, h: 55 }; }
+        }
+
+        class Enemy {
+            constructor(x, y, number, type) {
+                this.x = x; this.y = y; this.number = number; this.type = type;
+                this.width = 55; this.height = 45;
+                this.baseX = x;
+                this.wobble = rand(0, Math.PI * 2);
+                this.wobbleSpeed = rand(0.02, 0.04);
+                this.shootTimer = randInt(120, 280);
+                const colors = ['#ff4444', '#ff8800', '#ff66cc', '#cc66ff', '#ffaa00', '#44aaff'];
+                this.shipColor = colors[randInt(0, colors.length - 1)];
+            }
+            update() {
+                this.wobble += this.wobbleSpeed;
+                this.x = this.baseX + Math.sin(this.wobble) * 60;
+                if (this.y < 70) this.y = 70;
+                if (this.y > 230) this.y = 230;
+                this.shootTimer--;
+                if (this.shootTimer <= 0) {
+                    this.shoot();
+                    this.shootTimer = randInt(160, 320);
+                }
+                return true;
+            }
+            shoot() {
+                if (enemyBullets.length >= 8) return;
+                enemyBullets.push(new EnemyBullet(this.x, this.y + 22, 'bullet'));
+            }
+            draw() {
+                ctx.save(); ctx.translate(this.x, this.y);
+
+                // Number bubble
+                const bubbleY = -55;
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+                ctx.strokeStyle = '#ffdd00'; ctx.lineWidth = 3;
+                ctx.beginPath(); ctx.arc(0, bubbleY, 26, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+                ctx.fillStyle = '#ffdd00';
+                ctx.font = 'bold 24px Arial, sans-serif';
+                ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                ctx.fillText(this.number, 0, bubbleY);
+
+                // Ship body - simple rounded triangle
+                ctx.fillStyle = this.shipColor;
+                ctx.beginPath();
+                ctx.moveTo(0, 28);
+                ctx.lineTo(-26, -22);
+                ctx.lineTo(0, -12);
+                ctx.lineTo(26, -22);
+                ctx.closePath();
+                ctx.fill();
+
+                // Cute eyes
+                ctx.fillStyle = '#fff';
+                ctx.beginPath(); ctx.arc(-9, -2, 7, 0, Math.PI * 2); ctx.fill();
+                ctx.beginPath(); ctx.arc(9, -2, 7, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = '#000';
+                ctx.beginPath(); ctx.arc(-9, -2, 3.5, 0, Math.PI * 2); ctx.fill();
+                ctx.beginPath(); ctx.arc(9, -2, 3.5, 0, Math.PI * 2); ctx.fill();
+
+                ctx.restore();
+            }
+            getBounds() { return { x: this.x - 27, y: this.y - 27, w: 55, h: 55 }; }
+        }
+
+        let stars = [];
+        let player;
+        let enemies = [];
+        let playerBullets = [];
+        let enemyBullets = [];
+        let particles = [];
+        let blasts = [];
+        let floatingTexts = [];
+
+        for (let i = 0; i < 60; i++) stars.push(new Star());
+
+        function generateInitialProblem() {
+            spawnInitialEnemies();
+            pickNewCorrectEnemy();
+        }
+
+        function spawnInitialEnemies() {
+            enemies = [];
+            const count = 5;
+            const spacing = Math.min(160, (canvas.width - 120) / (count - 1));
+            const startX = (canvas.width - (count - 1) * spacing) / 2;
+            const usedNumbers = new Set();
+            for (let i = 0; i < count; i++) {
+                let number;
+                do { number = randInt(2, 12); } while (usedNumbers.has(number));
+                usedNumbers.add(number);
+                enemies.push(new Enemy(startX + i * spacing, 90 + randInt(0, 2) * 55, number, 'basic'));
+            }
+        }
+
+        function pickNewCorrectEnemy() {
+            if (enemies.length === 0) { spawnReplacementEnemies(3); }
+            const idx = randInt(0, enemies.length - 1);
+            correctEnemy = enemies[idx];
+            const answer = correctEnemy.number;
+            const a = randInt(1, answer - 1);
+            const b = answer - a;
+            problem = { a, b, answer };
+            document.getElementById('problem').textContent = `${a} + ${b} = ?`;
+            if (typeof HeartwarmingTTS !== 'undefined') HeartwarmingTTS.speak(`${a} plus ${b}`);
+        }
+
+        function spawnReplacementEnemies(count) {
+            const usedNumbers = new Set(enemies.map(e => e.number));
+            for (let i = 0; i < count; i++) {
+                let number;
+                do { number = randInt(2, 12); } while (usedNumbers.has(number));
+                usedNumbers.add(number);
+                enemies.push(new Enemy(rand(80, canvas.width - 80), 90 + randInt(0, 2) * 55, number, 'basic'));
+            }
+        }
+
+        function onCorrectEnemyDestroyed() {
+            score += 100;
+            correctThisLevel++;
+            document.getElementById('score').textContent = `SCORE: ${score}`;
+            solvedQuestions.push({ a: problem.a, b: problem.b, answer: problem.answer });
+            if (typeof HeartwarmingTTS !== 'undefined') HeartwarmingTTS.speak("Correct!");
+
+            if (level <= levelTargets.length && correctThisLevel >= levelTargets[level - 1]) {
+                showLevelComplete();
+                return;
+            }
+
+            spawnReplacementEnemies(1);
+            pickNewCorrectEnemy();
+        }
+
+        function showLevelComplete() {
+            levelPaused = true;
+            let msg = `You solved ${correctThisLevel} problems! Ready for Level ${level + 1}?`;
+            document.getElementById('levelCompleteText').textContent = msg;
+            if (typeof HeartwarmingTTS !== 'undefined') HeartwarmingTTS.speak(msg);
+            document.getElementById('levelComplete').style.display = 'block';
+        }
+
+        function nextLevel() {
+            document.getElementById('levelComplete').style.display = 'none';
+            level++;
+            correctThisLevel = 0;
+            levelPaused = false;
+            document.getElementById('levelDisplay').textContent = `Level ${level}`;
+            enemyBullets = [];
+            playerBullets = [];
+            spawnReplacementEnemies(2);
+            pickNewCorrectEnemy();
+        }
+
+        function onWrongEnemyHit(x, y) {
+            score = Math.max(0, score - 100);
+            document.getElementById('score').textContent = `SCORE: ${score}`;
+            floatingTexts.push(new FloatingText(x, y, '-100', '#ff4444'));
+            if (typeof HeartwarmingTTS !== 'undefined') HeartwarmingTTS.speak("Oops!");
+        }
+
+        function checkCollisions() {
+            const pb = player.getBounds();
+            for (let i = playerBullets.length - 1; i >= 0; i--) {
+                const bullet = playerBullets[i];
+                let hit = false;
+                for (let j = enemies.length - 1; j >= 0; j--) {
+                    const enemy = enemies[j];
+                    const eb = enemy.getBounds();
+                    if (bullet.x > eb.x && bullet.x < eb.x + eb.w && bullet.y > eb.y && bullet.y < eb.y + eb.h) {
+                        if (enemy === correctEnemy) {
+                            blasts.push(new Blast(enemy.x, enemy.y, '#00ff88'));
+                            enemies.splice(j, 1);
+                            correctEnemy = null;
+                            onCorrectEnemyDestroyed();
+                        } else {
+                            onWrongEnemyHit(enemy.x, enemy.y);
+                            for (let k = 0; k < 4; k++) {
+                                particles.push(new Particle(bullet.x, bullet.y, '#ff4444', 2, 3));
+                            }
+                        }
+                        hit = true; break;
+                    }
+                }
+                if (hit) playerBullets.splice(i, 1);
+            }
+            if (player.invulnerable === 0) {
+                for (let i = enemyBullets.length - 1; i >= 0; i--) {
+                    const bullet = enemyBullets[i];
+                    const dx = bullet.x - player.x; const dy = bullet.y - player.y;
+                    if (dx*dx + dy*dy < 900) {
+                        playerHit(); enemyBullets.splice(i, 1);
+                    }
+                }
+            }
+            if (player.invulnerable === 0) {
+                for (const enemy of enemies) {
+                    const eb = enemy.getBounds();
+                    if (pb.x < eb.x + eb.w && pb.x + pb.w > eb.x && pb.y < eb.y + eb.h && pb.y + pb.h > eb.y) {
+                        playerHit(); break;
+                    }
+                }
+            }
+        }
+
+        function playerHit() {
+            lives--;
+            document.getElementById('lives').textContent = `LIVES: ${lives}`;
+            blasts.push(new Blast(player.x, player.y, '#4488ff'));
+            player.invulnerable = 120;
+            if (lives <= 0) gameOver();
+        }
+
+        function gameOver() {
+            gameRunning = false;
+            if (typeof GameMusic !== 'undefined') GameMusic.stop();
+            document.getElementById('finalScore').textContent = `Final Score: ${score}`;
+            if (typeof HeartwarmingTTS !== 'undefined') HeartwarmingTTS.speak(`Game over! Your score is ${score}`);
+            const list = document.getElementById('questionList');
+            list.innerHTML = '';
+            if (solvedQuestions.length === 0) {
+                list.innerHTML = '<p style="text-align:center; color:#888;">No questions solved yet. Keep trying!</p>';
+            } else {
+                solvedQuestions.forEach((q, idx) => {
+                    const p = document.createElement('p');
+                    p.innerHTML = `${idx + 1}. ${q.a} + ${q.b} = <span>${q.answer}</span>`;
+                    list.appendChild(p);
+                });
+            }
+            document.getElementById('gameOver').style.display = 'block';
+        }
+
+        function startGame() {
+            document.getElementById('startScreen').style.display = 'none';
+            if (typeof HeartwarmingTTS !== 'undefined') {
+                HeartwarmingTTS.speak("Welcome to Math Blaster!");
+            }
+            if (typeof GameMusic !== 'undefined') {
+                GameMusic.start({ track: 'edWelch', volume: 0.3, fadeInMs: 2000 });
+            }
+            gameRunning = true; score = 0; lives = 5;
+            level = 1; correctThisLevel = 0; levelPaused = false;
+            solvedQuestions = [];
+            document.getElementById('score').textContent = 'SCORE: 0';
+            document.getElementById('lives').textContent = 'LIVES: 5';
+            document.getElementById('levelDisplay').textContent = 'Level 1';
+            player = new Player();
+            playerBullets = []; enemyBullets = []; particles = []; blasts = []; floatingTexts = [];
+            generateInitialProblem();
+            gameLoop();
+        }
+
+        function restartGame() {
+            document.getElementById('gameOver').style.display = 'none';
+            startGame();
+        }
+
+        function gameLoop() {
+            if (!gameRunning) return;
+
+            ctx.fillStyle = '#0a0a2e'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+            stars.forEach(star => { star.update(); star.draw(); });
+
+            if (!levelPaused) {
+                player.update();
+                enemies.forEach(enemy => enemy.update());
+                if (enemies.length < 4) spawnReplacementEnemies(2);
+
+                for (let i = playerBullets.length - 1; i >= 0; i--) {
+                    playerBullets[i].update();
+                    if (playerBullets[i].isOffScreen()) playerBullets.splice(i, 1);
+                }
+                for (let i = enemyBullets.length - 1; i >= 0; i--) {
+                    enemyBullets[i].update();
+                    if (enemyBullets[i].isOffScreen()) enemyBullets.splice(i, 1);
+                }
+                for (let i = particles.length - 1; i >= 0; i--) {
+                    particles[i].update();
+                    if (particles[i].life <= 0) particles.splice(i, 1);
+                }
+                for (let i = blasts.length - 1; i >= 0; i--) {
+                    blasts[i].update();
+                    if (blasts[i].isDead()) blasts.splice(i, 1);
+                }
+                for (let i = floatingTexts.length - 1; i >= 0; i--) {
+                    floatingTexts[i].update();
+                    if (floatingTexts[i].isDead()) floatingTexts.splice(i, 1);
+                }
+
+                checkCollisions();
+
+                player.draw();
+                enemies.forEach(enemy => enemy.draw());
+                playerBullets.forEach(b => b.draw());
+                enemyBullets.forEach(b => b.draw());
+                particles.forEach(p => p.draw());
+                blasts.forEach(b => b.draw());
+                floatingTexts.forEach(t => t.draw());
+            }
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        window.startGame = startGame;
+        window.restartGame = restartGame;
+        window.nextLevel = nextLevel;
+    </script>
+</body>
+</html>

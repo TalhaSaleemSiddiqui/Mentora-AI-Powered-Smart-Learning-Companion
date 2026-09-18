@@ -1,0 +1,1064 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multiplication Blitz - Arcade Match</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@500;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0a0a1a;
+            font-family: 'Rajdhani', sans-serif;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Animated background grid */
+        .bg-grid {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image:
+                linear-gradient(rgba(0, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: gridMove 20s linear infinite;
+            z-index: 0;
+        }
+
+        @keyframes gridMove {
+            0% {
+                transform: perspective(500px) rotateX(60deg) translateY(0);
+            }
+
+            100% {
+                transform: perspective(500px) rotateX(60deg) translateY(50px);
+            }
+        }
+
+        .game-container {
+            position: relative;
+            z-index: 10;
+            width: 900px;
+            max-width: 95vw;
+        }
+
+        /* Title Screen */
+        .title-screen {
+            text-align: center;
+            animation: titlePulse 2s ease-in-out infinite;
+        }
+
+        .game-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 4rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #00f5ff, #ff00e4, #00f5ff);
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradientShift 3s ease infinite;
+            text-shadow: 0 0 30px rgba(0, 245, 255, 0.5);
+            margin-bottom: 10px;
+        }
+
+        .game-subtitle {
+            color: #ff00e4;
+            font-size: 1.5rem;
+            letter-spacing: 8px;
+            text-transform: uppercase;
+            margin-bottom: 40px;
+            animation: glowPulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes titlePulse {
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.02);
+            }
+        }
+
+        @keyframes gradientShift {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        @keyframes glowPulse {
+
+            0%,
+            100% {
+                opacity: 0.7;
+                text-shadow: 0 0 10px rgba(255, 0, 228, 0.5);
+            }
+
+            50% {
+                opacity: 1;
+                text-shadow: 0 0 20px rgba(255, 0, 228, 0.8);
+            }
+        }
+
+        .btn-start {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.5rem;
+            padding: 20px 60px;
+            background: linear-gradient(135deg, #00f5ff, #0080ff);
+            border: none;
+            border-radius: 50px;
+            color: #0a0a1a;
+            font-weight: 700;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s;
+            box-shadow: 0 0 30px rgba(0, 245, 255, 0.4);
+        }
+
+        .btn-start:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 50px rgba(0, 245, 255, 0.6);
+        }
+
+        .btn-start::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transform: rotate(45deg);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% {
+                transform: translateX(-100%) rotate(45deg);
+            }
+
+            100% {
+                transform: translateX(100%) rotate(45deg);
+            }
+        }
+
+        /* HUD */
+        .hud {
+            display: none;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 15px 25px;
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(0, 245, 255, 0.3);
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+
+        .hud-item {
+            color: #fff;
+            font-size: 1.2rem;
+        }
+
+        .hud-item span {
+            color: #00f5ff;
+            font-weight: 700;
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        .level-indicator {
+            display: flex;
+            gap: 8px;
+        }
+
+        .level-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            transition: all 0.5s;
+        }
+
+        .level-dot.active {
+            background: #00f5ff;
+            box-shadow: 0 0 10px #00f5ff;
+        }
+
+        .level-dot.completed {
+            background: #00ff88;
+            box-shadow: 0 0 10px #00ff88;
+        }
+
+        /* Level Intro */
+        .level-intro {
+            display: none;
+            text-align: center;
+            animation: levelZoom 1s ease-out;
+        }
+
+        @keyframes levelZoom {
+            0% {
+                transform: scale(0) rotate(-10deg);
+                opacity: 0;
+            }
+
+            50% {
+                transform: scale(1.2) rotate(5deg);
+            }
+
+            100% {
+                transform: scale(1) rotate(0deg);
+                opacity: 1;
+            }
+        }
+
+        .level-number {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 6rem;
+            color: #ff00e4;
+            text-shadow: 0 0 30px rgba(255, 0, 228, 0.6);
+        }
+
+        .level-name {
+            font-size: 2rem;
+            color: #00f5ff;
+            margin-top: 10px;
+        }
+
+        .level-desc {
+            color: rgba(255, 255, 255, 0.7);
+            margin-top: 10px;
+            font-size: 1.1rem;
+        }
+
+        /* Active Question Display */
+        .active-question {
+            display: none;
+            text-align: center;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 3rem;
+            color: #ff00e4;
+            text-shadow: 0 0 20px rgba(255, 0, 228, 0.8);
+            margin-bottom: 20px;
+            animation: questionPulse 2s infinite;
+        }
+
+        @keyframes questionPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        /* Game Board */
+        .game-board {
+            display: none;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            perspective: 1000px;
+        }
+
+        .card {
+            aspect-ratio: 1;
+            position: relative;
+            cursor: pointer;
+            transform-style: preserve-3d;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .card.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .card.matched {
+            animation: matchPulse 0.6s ease;
+        }
+
+        @keyframes matchPulse {
+            0% {
+                transform: rotateY(180deg) scale(1);
+            }
+
+            50% {
+                transform: rotateY(180deg) scale(1.2);
+            }
+
+            100% {
+                transform: rotateY(180deg) scale(1);
+            }
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+            border: 2px solid;
+        }
+
+        .card-front {
+            background: linear-gradient(135deg, #1a1a3a, #0a0a2a);
+            border-color: rgba(0, 245, 255, 0.3);
+            color: #00f5ff;
+            box-shadow: 0 4px 15px rgba(0, 245, 255, 0.1);
+        }
+
+        .card-front::before {
+            content: '?';
+            font-size: 2.5rem;
+            opacity: 0.5;
+        }
+
+        .card-back {
+            background: linear-gradient(135deg, #2a0a3a, #1a0a2a);
+            border-color: #ff00e4;
+            color: #fff;
+            transform: rotateY(180deg);
+            box-shadow: 0 0 20px rgba(255, 0, 228, 0.3);
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+
+        .card:hover .card-front {
+            border-color: #00f5ff;
+            box-shadow: 0 0 20px rgba(0, 245, 255, 0.3);
+        }
+
+        /* Question Progress */
+        .question-progress {
+            display: none;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .question-bar {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .question-pip {
+            width: 40px;
+            height: 6px;
+            border-radius: 3px;
+            background: rgba(255, 255, 255, 0.2);
+            transition: all 0.5s;
+        }
+
+        .question-pip.current {
+            background: #00f5ff;
+            box-shadow: 0 0 10px #00f5ff;
+            animation: pipPulse 1s ease-in-out infinite;
+        }
+
+        .question-pip.correct {
+            background: #00ff88;
+            box-shadow: 0 0 10px #00ff88;
+        }
+
+        @keyframes pipPulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        /* Feedback */
+        .feedback {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 4rem;
+            font-weight: 900;
+            pointer-events: none;
+            z-index: 1000;
+            opacity: 0;
+        }
+
+        .feedback.show {
+            animation: feedbackPop 1s ease-out forwards;
+        }
+
+        @keyframes feedbackPop {
+            0% {
+                transform: translate(-50%, -50%) scale(0);
+                opacity: 0;
+            }
+
+            20% {
+                transform: translate(-50%, -50%) scale(1.3);
+                opacity: 1;
+            }
+
+            80% {
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 1;
+            }
+
+            100% {
+                transform: translate(-50%, -50%) scale(1.5);
+                opacity: 0;
+            }
+        }
+
+        .feedback.correct {
+            color: #00ff88;
+            text-shadow: 0 0 30px rgba(0, 255, 136, 0.8);
+        }
+
+        .feedback.wrong {
+            color: #ff4444;
+            text-shadow: 0 0 30px rgba(255, 68, 68, 0.8);
+        }
+
+        /* Victory Screen */
+        .victory-screen {
+            display: none;
+            text-align: center;
+            animation: victoryBounce 1s ease-out;
+        }
+
+        @keyframes victoryBounce {
+            0% {
+                transform: scale(0) translateY(100px);
+            }
+
+            50% {
+                transform: scale(1.1) translateY(-20px);
+            }
+
+            100% {
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .victory-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 4rem;
+            color: #00ff88;
+            text-shadow: 0 0 30px rgba(0, 255, 136, 0.6);
+            margin-bottom: 20px;
+        }
+
+        .victory-stats {
+            color: #fff;
+            font-size: 1.3rem;
+            margin-bottom: 30px;
+        }
+
+        .victory-stats span {
+            color: #00f5ff;
+            font-weight: 700;
+        }
+
+        /* Particles Canvas */
+        #particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        /* Shake animation for wrong match */
+        .shake {
+            animation: shake 0.5s ease;
+        }
+
+        @keyframes shake {
+
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            20% {
+                transform: translateX(-10px);
+            }
+
+            40% {
+                transform: translateX(10px);
+            }
+
+            60% {
+                transform: translateX(-10px);
+            }
+
+            80% {
+                transform: translateX(10px);
+            }
+        }
+
+        /* Combo indicator */
+        .combo-display {
+            position: fixed;
+            top: 20%;
+            right: 10%;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2rem;
+            color: #ffcc00;
+            text-shadow: 0 0 20px rgba(255, 204, 0, 0.6);
+            opacity: 0;
+            transition: all 0.3s;
+            z-index: 100;
+        }
+
+        .combo-display.show {
+            opacity: 1;
+            animation: comboBounce 0.5s ease;
+        }
+
+        @keyframes comboBounce {
+            0% {
+                transform: scale(0);
+            }
+
+            50% {
+                transform: scale(1.3);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .game-title {
+                font-size: 2.5rem;
+            }
+
+            .game-board {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 10px;
+            }
+
+            .card-face {
+                font-size: 1.3rem;
+            }
+
+            .level-number {
+                font-size: 4rem;
+            }
+        }
+    </style>
+    <script src="game-music.js"></script>
+</head>
+
+<body>
+    <div class="bg-grid"></div>
+    <canvas id="particles"></canvas>
+
+    <div class="game-container">
+        <!-- Title Screen -->
+        <div class="title-screen" id="titleScreen">
+            <h1 class="game-title">MULTIPLICATION<br>BLITZ</h1>
+            <p class="game-subtitle">Arcade Match</p>
+            <button class="btn-start" onclick="startGame()">START GAME</button>
+        </div>
+
+        <!-- HUD -->
+        <div class="hud" id="hud">
+            <div class="hud-item">LEVEL: <span id="hudLevel">1</span></div>
+            <div class="level-indicator" id="levelIndicator"></div>
+            <div class="hud-item">SCORE: <span id="hudScore">0</span></div>
+        </div>
+
+        <!-- Question Progress -->
+        <div class="question-progress" id="questionProgress">
+            <div style="color: #00f5ff; font-size: 1.1rem; margin-bottom: 5px;">QUESTION <span id="currentQ">1</span>/3
+            </div>
+            <div class="question-bar" id="questionBar"></div>
+        </div>
+
+        <!-- Level Intro -->
+        <div class="level-intro" id="levelIntro">
+            <div class="level-number" id="levelNum">1</div>
+            <div class="level-name" id="levelName">Novice Multiplier</div>
+            <div class="level-desc" id="levelDesc">Tables 1-3</div>
+        </div>
+
+        <!-- Active Question -->
+        <div class="active-question" id="activeQuestionDisplay"></div>
+
+        <!-- Game Board -->
+        <div class="game-board" id="gameBoard"></div>
+
+        <!-- Victory Screen -->
+        <div class="victory-screen" id="victoryScreen">
+            <div class="victory-title">VICTORY!</div>
+            <div class="victory-stats">
+                All 5 Levels Complete!<br>
+                Final Score: <span id="finalScore">0</span>
+            </div>
+            <button class="btn-start" onclick="resetGame()">PLAY AGAIN</button>
+        </div>
+    </div>
+
+    <!-- Feedback -->
+    <div class="feedback" id="feedback"></div>
+
+    <!-- Combo -->
+    <div class="combo-display" id="comboDisplay"></div>
+
+    <script>
+        // Game State
+        const state = {
+            currentLevel: 1,
+            currentQuestion: 1,
+            score: 0,
+            combo: 0,
+            maxCombo: 0,
+            flippedCards: [],
+            totalPairs: 4,
+            
+            isProcessing: false,
+            levels: [
+                { name: "Novice Multiplier", desc: "Tables 1-3", min: 1, max: 3 },
+                { name: "Rising Star", desc: "Tables 4-5", min: 4, max: 5 },
+                { name: "Math Warrior", desc: "Tables 6-7", min: 6, max: 7 },
+                { name: "Multiplication Master", desc: "Tables 8-9", min: 8, max: 9 },
+                { name: "Grand Champion", desc: "Tables 10-12", min: 10, max: 12 }
+            ]
+        };
+
+        // Particle System
+        const canvas = document.getElementById('particles');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        class Particle {
+            constructor(x, y, color) {
+                this.x = x;
+                this.y = y;
+                this.vx = (Math.random() - 0.5) * 10;
+                this.vy = (Math.random() - 0.5) * 10;
+                this.life = 1;
+                this.decay = 0.02;
+                this.color = color;
+                this.size = Math.random() * 6 + 2;
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.vy += 0.2;
+                this.life -= this.decay;
+                this.size *= 0.98;
+            }
+
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = this.life;
+                ctx.fillStyle = this.color;
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        function spawnParticles(x, y, color, count = 20) {
+            for (let i = 0; i < count; i++) {
+                particles.push(new Particle(x, y, color));
+            }
+        }
+
+        function animateParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles = particles.filter(p => p.life > 0);
+            particles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+            requestAnimationFrame(animateParticles);
+        }
+        animateParticles();
+
+        // Audio feedback (visual only since no audio files)
+        function showFeedback(text, isCorrect) {
+            const el = document.getElementById('feedback');
+            el.textContent = text;
+            el.className = 'feedback ' + (isCorrect ? 'correct' : 'wrong') + ' show';
+            setTimeout(() => el.className = 'feedback', 1000);
+        }
+
+        function showCombo() {
+            const el = document.getElementById('comboDisplay');
+            if (state.combo > 1) {
+                el.textContent = state.combo + 'x COMBO!';
+                el.className = 'combo-display show';
+                setTimeout(() => el.className = 'combo-display', 1000);
+            }
+        }
+
+        // Generate multiplication problems for current level
+        function generateProblems(level) {
+            const problems = [];
+            const used = new Set();
+            const lvl = state.levels[level - 1];
+            
+            while (problems.length < state.totalPairs) {
+                const a = Math.floor(Math.random() * (lvl.max - lvl.min + 1)) + lvl.min;
+                const b = Math.floor(Math.random() * 12) + 1;
+                const product = a * b;
+                const key = `${product}`; // Answer is the key to ensure unique answers on board
+                
+                if (!used.has(key) && product <= 144) {
+                    used.add(key);
+                    problems.push({ problem: `${a} × ${b} = ?`, answer: product });
+                }
+            }
+            return problems;
+        }
+
+        // Create card element
+        function createCard(content) {
+            const card = document.createElement('div');
+            card.className = 'card flipped'; // Start face up!
+            card.dataset.content = content;
+            
+            card.innerHTML = `
+                <div class="card-face card-front"></div>
+                <div class="card-face card-back">${content}</div>
+            `;
+            
+            card.addEventListener('click', () => flipCard(card));
+            return card;
+        }
+
+        // Shuffle array
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        // Setup board
+        function setupBoard() {
+            const board = document.getElementById('gameBoard');
+            board.innerHTML = '';
+            
+            state.problems = generateProblems(state.currentLevel);
+            let cards = state.problems.map(p => p.answer);
+            cards = shuffle(cards);
+            
+            cards.forEach((ans) => {
+                board.appendChild(createCard(ans));
+            });
+            
+            // Animate cards in
+            const cardElements = board.querySelectorAll('.card');
+            cardElements.forEach((card, i) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(-50px) rotateX(45deg)';
+                setTimeout(() => {
+                    card.style.transition = 'all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0) rotateX(0)';
+                    
+                    // Clear inline styles so the .flipped class can take effect
+                    setTimeout(() => {
+                        card.style.transform = '';
+                        card.style.transition = '';
+                    }, 500);
+                }, i * 100);
+            });
+
+            // Start memorization phase
+            state.isProcessing = true;
+            document.getElementById('activeQuestionDisplay').textContent = "MEMORIZE!";
+            document.getElementById('activeQuestionDisplay').style.display = 'block';
+
+            setTimeout(() => {
+                // Flip all down
+                cardElements.forEach(card => card.classList.remove('flipped'));
+                state.isProcessing = false;
+                setNextQuestion();
+            }, 3000 + (state.totalPairs * 100)); // wait for anims + 3 secs
+        }
+
+        function setNextQuestion() {
+            if (state.problems.length === 0 || state.currentQuestion > 3) {
+                setTimeout(nextLevel, 1000);
+                return;
+            }
+            
+            // Pick a random problem from remaining unflipped cards
+            const idx = Math.floor(Math.random() * state.problems.length);
+            state.activeProblem = state.problems[idx];
+            
+            const display = document.getElementById('activeQuestionDisplay');
+            display.textContent = state.activeProblem.problem;
+            
+            // Little bounce animation on new question
+            display.style.animation = 'none';
+            display.offsetHeight; // trigger reflow
+            display.style.animation = 'questionPulse 2s infinite';
+        }
+
+        // Flip card logic
+        function flipCard(card) {
+            if (state.isProcessing || card.classList.contains('flipped') || card.classList.contains('matched')) return;
+            
+            card.classList.add('flipped');
+            checkAnswer(card);
+        }
+
+        // Check Answer
+        function checkAnswer(card) {
+            state.isProcessing = true;
+            const answer = parseInt(card.dataset.content);
+            
+            if (answer === state.activeProblem.answer) {
+                // Correct
+                state.combo++;
+                if (state.combo > state.maxCombo) state.maxCombo = state.combo;
+                
+                const points = 100 * state.combo;
+                state.score += points;
+                updateHUD();
+                
+                setTimeout(() => {
+                    card.classList.add('matched');
+                    
+                    const rect = card.getBoundingClientRect();
+                    spawnParticles(rect.left + rect.width / 2, rect.top + rect.height / 2, '#00ff88', 20);
+                    
+                    showFeedback('PERFECT!', true);
+                    showCombo();
+                    
+                    // Remove from active problems pool
+                    state.problems = state.problems.filter(p => p.answer !== answer);
+                    state.currentQuestion++;
+                    
+                    if (state.currentQuestion > 3) {
+                        document.getElementById('activeQuestionDisplay').textContent = "LEVEL COMPLETE!";
+                        setTimeout(nextLevel, 1500);
+                    } else {
+                        updateQuestionProgress();
+                        document.getElementById('activeQuestionDisplay').textContent = "MEMORIZE!";
+                        
+                        // Reveal all remaining cards for 2 seconds
+                        const remainingCards = document.querySelectorAll('.card:not(.matched)');
+                        remainingCards.forEach(c => c.classList.add('flipped'));
+                        
+                        setTimeout(() => {
+                            remainingCards.forEach(c => c.classList.remove('flipped'));
+                            setNextQuestion();
+                            state.isProcessing = false;
+                        }, 2000);
+                    }
+                }, 400);
+            } else {
+                // Wrong
+                state.combo = 0;
+                setTimeout(() => {
+                    card.classList.add('shake');
+                    showFeedback('TRY AGAIN', false);
+                    
+                    setTimeout(() => {
+                        card.classList.remove('flipped', 'shake');
+                        state.isProcessing = false;
+                    }, 2000);
+                }, 400);
+            }
+        }
+
+        // Next level
+        function nextLevel() {
+            state.currentLevel++;
+            
+            if (state.currentLevel > 5) {
+                showVictory();
+                return;
+            }
+            
+            state.currentQuestion = 1;
+            state.isProcessing = false;
+            
+            showLevelIntro();
+        }
+
+        // Show level intro
+        function showLevelIntro() {
+            document.getElementById('gameBoard').style.display = 'none';
+            document.getElementById('questionProgress').style.display = 'none';
+            document.getElementById('activeQuestionDisplay').style.display = 'none';
+            
+            const intro = document.getElementById('levelIntro');
+            const lvl = state.levels[state.currentLevel - 1];
+            
+            document.getElementById('levelNum').textContent = state.currentLevel;
+            document.getElementById('levelName').textContent = lvl.name;
+            document.getElementById('levelDesc').textContent = lvl.desc;
+            
+            intro.style.display = 'block';
+            intro.style.animation = 'none';
+            intro.offsetHeight; // Trigger reflow
+            intro.style.animation = 'levelZoom 1s ease-out';
+            
+            updateHUD();
+            
+            setTimeout(() => {
+                intro.style.display = 'none';
+                document.getElementById('gameBoard').style.display = 'grid';
+                document.getElementById('questionProgress').style.display = 'block';
+                updateQuestionProgress();
+                setupBoard();
+            }, 2500);
+        }
+
+        // Update HUD
+        function updateHUD() {
+            document.getElementById('hudLevel').textContent = state.currentLevel;
+            document.getElementById('hudScore').textContent = state.score;
+            
+            const indicator = document.getElementById('levelIndicator');
+            indicator.innerHTML = '';
+            for (let i = 1; i <= 5; i++) {
+                const dot = document.createElement('div');
+                dot.className = 'level-dot';
+                if (i < state.currentLevel) dot.classList.add('completed');
+                else if (i === state.currentLevel) dot.classList.add('active');
+                indicator.appendChild(dot);
+            }
+        }
+
+        // Update question progress
+        function updateQuestionProgress() {
+            document.getElementById('currentQ').textContent = state.currentQuestion <= 3 ? state.currentQuestion : 3;
+            const bar = document.getElementById('questionBar');
+            bar.innerHTML = '';
+            for (let i = 1; i <= 3; i++) {
+                const pip = document.createElement('div');
+                pip.className = 'question-pip';
+                if (i < state.currentQuestion) pip.classList.add('correct');
+                else if (i === state.currentQuestion) pip.classList.add('current');
+                bar.appendChild(pip);
+            }
+        }
+
+        // Show victory
+        function showVictory() {
+            if (typeof GameMusic !== 'undefined') GameMusic.stop();
+            document.getElementById('hud').style.display = 'none';
+            document.getElementById('questionProgress').style.display = 'none';
+            document.getElementById('gameBoard').style.display = 'none';
+            document.getElementById('activeQuestionDisplay').style.display = 'none';
+            
+            document.getElementById('finalScore').textContent = state.score;
+            document.getElementById('victoryScreen').style.display = 'block';
+            
+            // Victory particles
+            for (let i = 0; i < 5; i++) {
+                setTimeout(() => {
+                    spawnParticles(
+                        Math.random() * canvas.width,
+                        Math.random() * canvas.height,
+                        ['#00ff88', '#00f5ff', '#ff00e4', '#ffcc00'][Math.floor(Math.random() * 4)],
+                        30
+                    );
+                }, i * 300);
+            }
+        }
+
+        // Start game
+        function startGame() {
+            // Hide title screen and show HUD
+            document.getElementById('titleScreen').style.display = 'none';
+            document.getElementById('hud').style.display = 'flex';
+            document.getElementById('questionProgress').style.display = 'block';
+
+            // Reset state
+            state.currentLevel = 1;
+            state.currentQuestion = 1;
+            state.score = 0;
+            state.combo = 0;
+            state.maxCombo = 0;
+            state.isProcessing = false;
+
+            if (typeof GameMusic !== 'undefined') {
+                GameMusic.start({ track: 'nickArcade', volume: 0.28, fadeInMs: 2000 });
+            }
+
+            updateHUD();
+            showLevelIntro();
+            document.getElementById('titleScreen').style.display = 'none';
+            document.getElementById('hud').style.display = 'flex';
+            document.getElementById('questionProgress').style.display = 'block';
+            
+            state.currentLevel = 1;
+            state.currentQuestion = 1;
+            state.score = 0;
+            state.combo = 0;
+            state.maxCombo = 0;
+            state.isProcessing = false;
+            
+            updateHUD();
+            showLevelIntro();
+        }
+
+        // Reset game
+        function resetGame() {
+            document.getElementById('victoryScreen').style.display = 'none';
+            startGame();
+        }
+
+        // Initialize level dots
+        updateHUD();
+    </script>
+</body>
+
+</html>
