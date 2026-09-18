@@ -1,1 +1,0 @@
-# Mentora-AI-Powered-Smart-Learning-Companion
